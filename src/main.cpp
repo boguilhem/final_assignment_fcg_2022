@@ -226,7 +226,7 @@ int main(int argc, char* argv[])
     // Criamos uma janela do sistema operacional, com 800 colunas e 600 linhas
     // de pixels, e com título "INF01047 ...".
     GLFWwindow* window;
-    window = glfwCreateWindow(800, 600, "Starfox Dodge Game", NULL, NULL);
+    window = glfwCreateWindow(960, 540, "Starfox Dodge Game", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -255,7 +255,7 @@ int main(int argc, char* argv[])
     // redimensionada, por consequência alterando o tamanho do "framebuffer"
     // (região de memória onde são armazenados os pixels da imagem).
     glfwSetFramebufferSizeCallback(window, FramebufferSizeCallback);
-    FramebufferSizeCallback(window, 800, 600); // Forçamos a chamada do callback acima, para definir g_ScreenRatio.
+    FramebufferSizeCallback(window, 960, 540); // Forçamos a chamada do callback acima, para definir g_ScreenRatio.
 
     // Imprimimos no terminal informações sobre a GPU do sistema
     const GLubyte *vendor      = glGetString(GL_VENDOR);
