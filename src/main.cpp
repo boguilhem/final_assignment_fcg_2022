@@ -299,6 +299,14 @@ int main(int argc, char* argv[])
     ComputeNormals(&spaceshipmodel);
     BuildTrianglesAndAddToVirtualScene(&spaceshipmodel);
 
+    ObjModel asteroid0model("../../data/asteroid0/source/asteroid0.obj");
+    ComputeNormals(&asteroid0model);
+    BuildTrianglesAndAddToVirtualScene(&asteroid0model);
+
+    ObjModel asteroid1model("../../data/asteroid1/source/asteroid1.obj");
+    ComputeNormals(&asteroid1model);
+    BuildTrianglesAndAddToVirtualScene(&asteroid1model);
+
     if ( argc > 1 )
     {
         ObjModel model(argv[1]);
@@ -399,6 +407,8 @@ int main(int argc, char* argv[])
         #define PLANE  2
         #define COW  3
         #define SPACESHIP  4
+        #define ASTEROID0  5
+        #define ASTEROID1  6
 
         // Desenhamos o modelo da esfera
         //model = Matrix_Translate(-1.0f,0.0f,0.0f)
@@ -417,10 +427,10 @@ int main(int argc, char* argv[])
         //DrawVirtualObject("bunny");
 
         // Desenhamos o plano do chão
-        //model = Matrix_Translate(0.0f,-1.1f,0.0f);
-        //glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        //glUniform1i(object_id_uniform, PLANE);
-        //DrawVirtualObject("plane");
+        model = Matrix_Translate(0.0f,-1.0f,0.0f) * Matrix_Scale(100.0, 100.0, 10.0);
+        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        glUniform1i(object_id_uniform, PLANE);
+        DrawVirtualObject("plane");
 
         //Desenhamos o modelo da vaca
         //model = Matrix_Translate(1.0f,0.0f,0.0f)
@@ -434,6 +444,18 @@ int main(int argc, char* argv[])
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, SPACESHIP);
         DrawVirtualObject("spaceship");
+
+        // Desenhamos o modelo asteroid0
+        model = Matrix_Translate(0.0f,-5.0f,1.0f) * Matrix_Scale(0.1, 0.1, 0.1);
+        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        glUniform1i(object_id_uniform, ASTEROID0);
+        DrawVirtualObject("asteroid0");
+
+        // Desenhamos o modelo asteroid1
+        model = Matrix_Translate(0.0f,-5.0f,1.0f) * Matrix_Scale(10.0, 10.0, 10.0);
+        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        glUniform1i(object_id_uniform, ASTEROID1);
+        DrawVirtualObject("asteroid1");
 
         // Imprimimos na tela os ângulos de Euler que controlam a rotação do
         // terceiro cubo.
@@ -1222,6 +1244,30 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         LoadShadersFromFiles();
         fprintf(stdout,"Shaders recarregados!\n");
         fflush(stdout);
+    }
+
+    // Se o usuário apertar a tecla UP
+    if (key == GLFW_KEY_UP && action == GLFW_PRESS)
+    {
+        // aceleração?
+    }
+
+    // Se o usuário apertar a tecla DOWN
+    if (key == GLFW_KEY_DOWN && action == GLFW_PRESS)
+    {
+        // freiar?
+    }
+
+    // Se o usuário apertar a tecla LEFT
+    if (key == GLFW_KEY_LEFT && action == GLFW_PRESS)
+    {
+        // desviar no eixo x
+    }
+
+    // Se o usuário apertar a tecla RIGHT
+    if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS)
+    {
+        // desviar no eixo x
     }
 }
 

@@ -24,6 +24,8 @@ uniform mat4 projection;
 #define PLANE  2
 #define COW 3
 #define SPACESHIP 4
+#define ASTEROID0 5
+#define ASTEROID1 6
 uniform int object_id;
 
 // Parâmetros da axis-aligned bounding box (AABB) do modelo
@@ -71,8 +73,11 @@ void main()
     float U = 0.0;
     float V = 0.0;
 
-    // Obtemos a refletância difusa a partir da leitura da imagem TextureImage0
+    // Obtemos a refletância difusa a partir da leitura das texturas
     vec3 Kd0;
+    vec3 Kd1;
+    vec3 Kd2;
+    vec3 Kd3;
 
     // Equação de Iluminação
     float lambert;
@@ -107,7 +112,6 @@ void main()
         //   função 'asin( )'   : seno inverso.
         //   constante M_PI
         //   variável position_model
-
         vec4 bbox_center = (bbox_min + bbox_max) / 2.0;
 
         vec4 plinha = bbox_center + (position_model - bbox_center) / length(position_model - bbox_center);
@@ -129,7 +133,6 @@ void main()
         // tanto, veja por exemplo o mapeamento da variável 'p_v' utilizando
         // 'h' no slides 158-160 do documento Aula_20_Mapeamento_de_Texturas.pdf.
         // Veja também a Questão 4 do Questionário 4 no Moodle.
-
         float minx = bbox_min.x;
         float maxx = bbox_max.x;
 
@@ -185,16 +188,47 @@ void main()
         U = (position_model.x - minx) / (maxx - minx);
         V = (position_model.y - miny) / (maxy - miny);
     }
+    else if ( object_id == ASTEROID0 )
+    {
+        float minx = bbox_min.x;
+        float maxx = bbox_max.x;
 
-    // Obtemos a refletância difusa a partir da leitura da imagem TextureImage0
-    Kd = texture(TextureImage0, vec2(U,V)).rgb;
+        float miny = bbox_min.y;
+        float maxy = bbox_max.y;
+
+        float minz = bbox_min.z;
+        float maxz = bbox_max.z;
+
+        U = (position_model.x - minx) / (maxx - minx);
+        V = (position_model.y - miny) / (maxy - miny);
+    }
+    else if ( object_id == ASTEROID1 )
+    {
+        float minx = bbox_min.x;
+        float maxx = bbox_max.x;
+
+        float miny = bbox_min.y;
+        float maxy = bbox_max.y;
+
+        float minz = bbox_min.z;
+        float maxz = bbox_max.z;
+
+        U = (position_model.x - minx) / (maxx - minx);
+        V = (position_model.y - miny) / (maxy - miny);
+    }
+
+    // Obtemos a refletância difusa a partir da leitura das texturas
+    Kd0 = texture(TextureImage0, vec2(U,V)).rgb;
+    Kd1 = texture(TextureImage1, vec2(U,V)).rgb;
+    Kd2 = texture(TextureImage2, vec2(U,V)).rgb;
+    Kd3 = texture(TextureImage3, vec2(U,V)).rgb;
 
     if(calculo_iluminacao)
     {
         // Espectro da luz ambiente
         vec3 Ia = vec3(0.1,0.1,0.1);
 
-        vec3 lambert_diffuse_term = Kd * I * max(0, dot(n,l));
+        vec3 lambert_diffuse_term = Kd0 * I * max(0, dot(n,l));
 
         // Termo ambiente
         vec3 ambient_term = Ka*Ia;
