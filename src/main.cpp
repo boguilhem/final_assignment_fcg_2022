@@ -278,7 +278,7 @@ int main(int argc, char* argv[])
 
     // Carregamos duas imagens para serem utilizadas como textura
     LoadTextureImage("../../data/spaceship/textures/DeathRow_Low_Cube001_[AlbedoM].png");      // TextureImage0
-    LoadTextureImage("../../data/tc-earth_nightmap_citylights.gif"); // TextureImage1
+    LoadTextureImage("../../data/asteroid0/textures/LPP_1001_Roughness.png");                   // TextureImage1
     LoadTextureImage("../../data/spaceship/textures/DeathRow_Low_Cube001_[Metalness].png");      // TextureImage2
     LoadTextureImage("../../data/spaceship/textures/DeathRow_Low_Cube001_[Normal].png");      // TextureImage3
 
@@ -411,17 +411,17 @@ int main(int argc, char* argv[])
         #define PLANE  2
         #define COW  3
         #define SPACESHIP  4
-        #define ASTEROID0  5
-        #define ASTEROID1  6
+//        #define ASTEROID0  5
+//        #define ASTEROID1  6
 
-        // Desenhamos o modelo da esfera
-        //model = Matrix_Translate(-1.0f,0.0f,0.0f)
-        //      * Matrix_Rotate_Z(0.6f)
-        //      * Matrix_Rotate_X(0.2f)
-        //      * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
-        //glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        //glUniform1i(object_id_uniform, SPHERE);
-        //DrawVirtualObject("sphere");
+//         Desenhamos o modelo da esfera
+        model = Matrix_Translate(-1.0f,0.0f,0.0f) * Matrix_Scale(0.5, 0.5, 0.5)
+              * Matrix_Rotate_Z(0.6f)
+              * Matrix_Rotate_X(0.2f)
+              * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
+        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        glUniform1i(object_id_uniform, SPHERE);
+        DrawVirtualObject("sphere");
 
         // Desenhamos o modelo do coelho
         //model = Matrix_Translate(1.0f,0.0f,0.0f)
@@ -449,17 +449,17 @@ int main(int argc, char* argv[])
         glUniform1i(object_id_uniform, SPACESHIP);
         DrawVirtualObject("spaceship");
 
-        // Desenhamos o modelo asteroid0
-        model = Matrix_Translate(0.0f,-5.0f,1.0f) * Matrix_Scale(0.1, 0.1, 0.1);
-        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, ASTEROID0);
-        DrawVirtualObject("asteroid0");
-
-        // Desenhamos o modelo asteroid1
-        model = Matrix_Translate(0.0f,-5.0f,1.0f) * Matrix_Scale(10.0, 10.0, 10.0);
-        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, ASTEROID1);
-        DrawVirtualObject("asteroid1");
+//        // Desenhamos o modelo asteroid0
+//        model = Matrix_Translate(0.0f,-5.0f,1.0f) * Matrix_Scale(0.1, 0.1, 0.1);
+//        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+//        glUniform1i(object_id_uniform, ASTEROID0);
+//        DrawVirtualObject("asteroid0");
+//
+//        // Desenhamos o modelo asteroid1
+//        model = Matrix_Translate(0.0f,-5.0f,1.0f) * Matrix_Scale(10.0, 10.0, 10.0);
+//        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+//        glUniform1i(object_id_uniform, ASTEROID1);
+//        DrawVirtualObject("asteroid1");
 
         // Imprimimos na tela os ângulos de Euler que controlam a rotação do
         // terceiro cubo.
