@@ -23,9 +23,7 @@ uniform mat4 projection;
 #define BUNNY  1
 #define PLANE  2
 #define COW 3
-#define ASTEROID 4
-#define EXPLORER 5
-#define DEATHROW 6
+#define SPACESHIP 4
 uniform int object_id;
 
 // Parâmetros da axis-aligned bounding box (AABB) do modelo
@@ -173,7 +171,7 @@ void main()
         U = (position_model.x - minx) / (maxx - minx);
         V = (position_model.y - miny) / (maxy - miny);
     }
-    else if ( object_id == DEATHROW )
+    else if ( object_id == SPACESHIP )
     {
 
         float minx = bbox_min.x;
@@ -211,11 +209,11 @@ void main()
     }
 
     // Equação de Iluminação
-//    float lambert = max(0,dot(n,l));
+    // float lambert = max(0,dot(n,l));
 
-//    color.rgb = Kd0 * (lambert + 0.01);
-//    color.rgb = (Kd0 * (lambert + 0.01)) + (Kd1 * (1 - pow(lambert,0.1))) + (Kd2 * (lambert + 0.01)) + (Kd3 * (lambert + 0.01));
-//    color.rgb = (Kd0 * (lambert + 0.01)) + (Kd1 * (lambert + 0.01));
+    // color.rgb = Kd0 * (lambert + 0.01);
+    // color.rgb = (Kd0 * (lambert + 0.01)) + (Kd1 * (1 - pow(lambert,0.1))) + (Kd2 * (lambert + 0.01)) + (Kd3 * (lambert + 0.01));
+    // color.rgb = (Kd0 * (lambert + 0.01)) + (Kd1 * (lambert + 0.01));
 
     // NOTE: Se você quiser fazer o rendering de objetos transparentes, é
     // necessário:

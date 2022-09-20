@@ -1,8 +1,4 @@
-# Blender v2.77 (sub 0) OBJ File: 'Jet_fighter.blend'
-# www.blender.org
-#mtllib DeathRow_lowpoly.mtl
-#o DeathRow_Low_Cube.001
-g deathrow
+g spaceship
 v 3.287188 -1.179737 -2.889297
 v 7.671463 0.538136 -7.352115
 v 0.187928 -0.704987 15.862580

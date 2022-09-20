@@ -293,9 +293,9 @@ int main(int argc, char* argv[])
     ComputeNormals(&cowmodel);
     BuildTrianglesAndAddToVirtualScene(&cowmodel);
 
-    ObjModel deathrowmodel("../../data/deathrow.obj");
-    ComputeNormals(&deathrowmodel);
-    BuildTrianglesAndAddToVirtualScene(&deathrowmodel);
+    ObjModel spaceshipmodel("../../data/spaceship.obj");
+    ComputeNormals(&spaceshipmodel);
+    BuildTrianglesAndAddToVirtualScene(&spaceshipmodel);
 
     if ( argc > 1 )
     {
@@ -396,7 +396,7 @@ int main(int argc, char* argv[])
         #define BUNNY  1
         #define PLANE  2
         #define COW  3
-        #define DEATHROW  4
+        #define SPACESHIP  4
 
         // Desenhamos o modelo da esfera
         //model = Matrix_Translate(-1.0f,0.0f,0.0f)
@@ -427,11 +427,11 @@ int main(int argc, char* argv[])
         //glUniform1i(object_id_uniform, COW);
         //DrawVirtualObject("cow");
 
-        // Desenhamos o modelo do deathrow
+        // Desenhamos o modelo spaceship
         model = Matrix_Translate(0.0f,-0.5f,0.0f) * Matrix_Scale(0.1, 0.1, 0.1) * Matrix_Rotate_Y(M_PI);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, DEATHROW);
-        DrawVirtualObject("deathrow");
+        glUniform1i(object_id_uniform, SPACESHIP);
+        DrawVirtualObject("spaceship");
 
         // Imprimimos na tela os ângulos de Euler que controlam a rotação do
         // terceiro cubo.
