@@ -50,6 +50,8 @@
 #include "utils.h"
 #include "matrices.h"
 
+#define M_PI 3.14159265358979323846
+
 // Estrutura que representa um modelo geométrico carregado a partir de um
 // arquivo ".obj". Veja https://en.wikipedia.org/wiki/Wavefront_.obj_file .
 struct ObjModel
@@ -426,8 +428,7 @@ int main(int argc, char* argv[])
         //DrawVirtualObject("cow");
 
         // Desenhamos o modelo do deathrow
-        //model = Matrix_Translate(1.0f,0.0f,0.0f)
-        //      * Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f);
+        model = Matrix_Translate(0.0f,-0.5f,0.0f) * Matrix_Scale(0.1, 0.1, 0.1) * Matrix_Rotate_Y(M_PI);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, DEATHROW);
         DrawVirtualObject("deathrow");
