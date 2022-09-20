@@ -185,6 +185,10 @@ bool g_UsePerspectiveProjection = true;
 // Variável que controla se o texto informativo será mostrado na tela.
 bool g_ShowInfoText = true;
 
+// VARIAVEIS DE MOVIMENTAÇÃO SPACESHIP
+float spaceship_x_offset = 0.0f;
+float spaceship_y_offset = 0.0f;
+
 // Variáveis que definem um programa de GPU (shaders). Veja função LoadShadersFromFiles().
 GLuint vertex_shader_id;
 GLuint fragment_shader_id;
@@ -440,7 +444,7 @@ int main(int argc, char* argv[])
         //DrawVirtualObject("cow");
 
         // Desenhamos o modelo spaceship
-        model = Matrix_Translate(0.0f,-0.5f,0.0f) * Matrix_Scale(0.1, 0.1, 0.1) * Matrix_Rotate_Y(M_PI);
+        model = Matrix_Translate(0.0f + spaceship_x_offset,-0.5f + spaceship_y_offset,0.0f) * Matrix_Scale(0.1, 0.1, 0.1) * Matrix_Rotate_Y(M_PI);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, SPACESHIP);
         DrawVirtualObject("spaceship");
@@ -1247,27 +1251,29 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     }
 
     // Se o usuário apertar a tecla UP
-    if (key == GLFW_KEY_UP && action == GLFW_PRESS)
+    if (key == GLFW_KEY_UP && (action == GLFW_PRESS || action == GLFW_REPEAT))
     {
-        // aceleração?
+        spaceship_y_offset += 0.1f;
     }
 
     // Se o usuário apertar a tecla DOWN
-    if (key == GLFW_KEY_DOWN && action == GLFW_PRESS)
+    if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT))
     {
-        // freiar?
+        spaceship_y_offset -= 0.1f;
     }
 
     // Se o usuário apertar a tecla LEFT
-    if (key == GLFW_KEY_LEFT && action == GLFW_PRESS)
+    if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT))
     {
         // desviar no eixo x
+        spaceship_x_offset -= 0.1f;
     }
 
     // Se o usuário apertar a tecla RIGHT
-    if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS)
+    if (key == GLFW_KEY_RIGHT && (action == GLFW_PRESS || action == GLFW_REPEAT))
     {
         // desviar no eixo x
+        spaceship_x_offset += 0.1f;
     }
 }
 
