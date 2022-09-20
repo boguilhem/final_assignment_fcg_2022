@@ -173,7 +173,6 @@ void main()
     }
     else if ( object_id == SPACESHIP )
     {
-
         float minx = bbox_min.x;
         float maxx = bbox_max.x;
 
