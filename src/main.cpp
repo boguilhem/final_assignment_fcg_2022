@@ -167,7 +167,7 @@ bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mous
 // renderização.
 float g_CameraTheta = 0.0f; // Ângulo no plano ZX em relação ao eixo Z
 float g_CameraPhi = 0.0f;   // Ângulo em relação ao eixo Y
-float g_CameraDistance = 35.0f; // Distância da câmera para a origem
+float g_CameraDistance = 3.5f; // Distância da câmera para a origem
 
 // Variáveis que controlam rotação do antebraço
 float g_ForearmAngleZ = 0.0f;
@@ -358,8 +358,8 @@ int main(int argc, char* argv[])
 
         // Note que, no sistema de coordenadas da câmera, os planos near e far
         // estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.
-        float nearplane = -10.0f;  // Posição do "near plane"
-        float farplane  = -100.0f; // Posição do "far plane"
+        float nearplane = -0.1f;  // Posição do "near plane"
+        float farplane  = -10.0f; // Posição do "far plane"
 
         if (g_UsePerspectiveProjection)
         {
@@ -426,8 +426,8 @@ int main(int argc, char* argv[])
         //DrawVirtualObject("cow");
 
         // Desenhamos o modelo do deathrow
-        model = Matrix_Translate(1.0f,0.0f,0.0f)
-              * Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f);
+        //model = Matrix_Translate(1.0f,0.0f,0.0f)
+        //      * Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, DEATHROW);
         DrawVirtualObject("deathrow");
