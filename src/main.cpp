@@ -171,14 +171,6 @@ float g_CameraTheta = 0.0f; // Ângulo no plano ZX em relação ao eixo Z
 float g_CameraPhi = 0.0f;   // Ângulo em relação ao eixo Y
 float g_CameraDistance = 3.5f; // Distância da câmera para a origem
 
-// Variáveis que controlam rotação do antebraço
-float g_ForearmAngleZ = 0.0f;
-float g_ForearmAngleX = 0.0f;
-
-// Variáveis que controlam translação do torso
-float g_TorsoPositionX = 0.0f;
-float g_TorsoPositionY = 0.0f;
-
 // Variável que controla encolhimento da nave
 float spaceship_resize = 1.0f;
 
@@ -290,10 +282,6 @@ int main(int argc, char* argv[])
     ObjModel spheremodel("../../data/sphere.obj");
     ComputeNormals(&spheremodel);
     BuildTrianglesAndAddToVirtualScene(&spheremodel);
-
-    ObjModel bunnymodel("../../data/bunny.obj");
-    ComputeNormals(&bunnymodel);
-    BuildTrianglesAndAddToVirtualScene(&bunnymodel);
 
     ObjModel planemodel("../../data/plane.obj");
     ComputeNormals(&planemodel);
@@ -411,12 +399,11 @@ int main(int argc, char* argv[])
         glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
 
         #define SPHERE 0
-        #define BUNNY  1
-        #define PLANE  2
-        #define COW  3
-        #define SPACESHIP  4
-        //#define ASTEROID0  5
-        //#define ASTEROID1  6
+        #define PLANE  1
+        #define COW  2
+        #define SPACESHIP  3
+        //#define ASTEROID0  4
+        //#define ASTEROID1  5
 
         /*
         model = Matrix_Translate(-1.0f,0.0f,0.0f) * Matrix_Scale(0.5, 0.5, 0.5)
@@ -455,13 +442,6 @@ int main(int argc, char* argv[])
             DrawVirtualObject("sphere");
         }
 
-        // Desenhamos o modelo do coelho
-        //model = Matrix_Translate(1.0f,0.0f,0.0f)
-        //      * Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f);
-        //glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        //glUniform1i(object_id_uniform, BUNNY);
-        //DrawVirtualObject("bunny");
-
         // Desenhamos o plano do chão
         model = Matrix_Translate(0.0f,-1.0f,0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
@@ -476,7 +456,14 @@ int main(int argc, char* argv[])
         //DrawVirtualObject("cow");
 
         // Desenhamos o modelo spaceship
-        model = Matrix_Translate(0.0f + spaceship_x_offset,-0.5f + spaceship_y_offset,0.0f - 0.25f * (float)glfwGetTime()) * Matrix_Scale(0.1 * spaceship_resize, 0.1 * spaceship_resize, 0.1 * spaceship_resize) * Matrix_Rotate_Y(M_PI);
+//        model = Matrix_Translate(0.0f + spaceship_x_offset,-0.5f + spaceship_y_offset,0.0f - 0.25f * (float)glfwGetTime()) * Matrix_Scale(0.1 * spaceship_resize, 0.1 * spaceship_resize, 0.1 * spaceship_resize) * Matrix_Rotate_Y(M_PI);
+//        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+//        glUniform1i(object_id_uniform, SPACESHIP);
+//        DrawVirtualObject("spaceship");
+        model = Matrix_Translate(0.0f + spaceship_x_offset,-0.5f + spaceship_y_offset,0.0f - 0.25f)
+            * Matrix_Scale(0.1 * spaceship_resize, 0.1 * spaceship_resize, 0.1 * spaceship_resize)
+            * Matrix_Rotate_Y(M_PI)
+            * Matrix_Rotate_Z(g_AngleX);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, SPACESHIP);
         DrawVirtualObject("spaceship");
@@ -1160,10 +1147,6 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
         float dx = xpos - g_LastCursorPosX;
         float dy = ypos - g_LastCursorPosY;
 
-        // Atualizamos parâmetros da antebraço com os deslocamentos
-        g_ForearmAngleZ -= 0.01f*dx;
-        g_ForearmAngleX += 0.01f*dy;
-
         // Atualizamos as variáveis globais para armazenar a posição atual do
         // cursor como sendo a última posição conhecida do cursor.
         g_LastCursorPosX = xpos;
@@ -1175,10 +1158,6 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
         // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
         float dx = xpos - g_LastCursorPosX;
         float dy = ypos - g_LastCursorPosY;
-
-        // Atualizamos parâmetros da antebraço com os deslocamentos
-        g_TorsoPositionX += 0.01f*dx;
-        g_TorsoPositionY -= 0.01f*dy;
 
         // Atualizamos as variáveis globais para armazenar a posição atual do
         // cursor como sendo a última posição conhecida do cursor.
@@ -1221,27 +1200,18 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         glfwSetWindowShouldClose(window, GL_TRUE);
 
     // O código abaixo implementa a seguinte lógica:
-    //   Se apertar tecla X       então g_AngleX += delta;
-    //   Se apertar tecla shift+X então g_AngleX -= delta;
-    //   Se apertar tecla Y       então g_AngleY += delta;
-    //   Se apertar tecla shift+Y então g_AngleY -= delta;
-    //   Se apertar tecla Z       então g_AngleZ += delta;
-    //   Se apertar tecla shift+Z então g_AngleZ -= delta;
+    //   Se apertar tecla Q       então g_AngleX += -delta;
+    //   Se apertar tecla E então g_AngleX += delta;
 
     float delta = 3.141592 / 16; // 22.5 graus, em radianos.
 
-    if (key == GLFW_KEY_X && action == GLFW_PRESS)
+    if (key == GLFW_KEY_Q && (action == GLFW_PRESS || action == GLFW_REPEAT))
     {
-        g_AngleX += (mod & GLFW_MOD_SHIFT) ? -delta : delta;
+        g_AngleX += -delta;
     }
-
-    if (key == GLFW_KEY_Y && action == GLFW_PRESS)
+    if (key == GLFW_KEY_E && (action == GLFW_PRESS || action == GLFW_REPEAT))
     {
-        g_AngleY += (mod & GLFW_MOD_SHIFT) ? -delta : delta;
-    }
-    if (key == GLFW_KEY_Z && action == GLFW_PRESS)
-    {
-        g_AngleZ += (mod & GLFW_MOD_SHIFT) ? -delta : delta;
+        g_AngleX += delta;
     }
 
     // Se o usuário apertar a tecla espaço, resetamos os ângulos de Euler para zero.
@@ -1283,26 +1253,26 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     }
 
     // Se o usuário apertar a tecla UP
-    if (key == GLFW_KEY_UP && (action == GLFW_PRESS || action == GLFW_REPEAT))
+    if (key == GLFW_KEY_W && (action == GLFW_PRESS || action == GLFW_REPEAT))
     {
         spaceship_y_offset += 0.1f;
     }
 
     // Se o usuário apertar a tecla DOWN
-    if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT))
+    if (key == GLFW_KEY_S && (action == GLFW_PRESS || action == GLFW_REPEAT))
     {
         spaceship_y_offset -= 0.1f;
     }
 
     // Se o usuário apertar a tecla LEFT
-    if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT))
+    if (key == GLFW_KEY_A && (action == GLFW_PRESS || action == GLFW_REPEAT))
     {
         // desviar no eixo x
         spaceship_x_offset -= 0.1f;
     }
 
     // Se o usuário apertar a tecla RIGHT
-    if (key == GLFW_KEY_RIGHT && (action == GLFW_PRESS || action == GLFW_REPEAT))
+    if (key == GLFW_KEY_D && (action == GLFW_PRESS || action == GLFW_REPEAT))
     {
         // desviar no eixo x
         spaceship_x_offset += 0.1f;
