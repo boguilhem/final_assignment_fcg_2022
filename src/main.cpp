@@ -167,9 +167,21 @@ bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mous
 // usuário através do mouse (veja função CursorPosCallback()). A posição
 // efetiva da câmera é calculada dentro da função main(), dentro do loop de
 // renderização.
+
 float g_CameraTheta = 0.0f; // Ângulo no plano ZX em relação ao eixo Z
 float g_CameraPhi = 0.0f;   // Ângulo em relação ao eixo Y
 float g_CameraDistance = 3.5f; // Distância da câmera para a origem
+
+float pos_ship_x = 1.0f;
+float pos_ship_y = 0.0f;
+float pos_ship_z = 3.385f;
+bool key_w_pressed = false;
+bool key_s_pressed = false;
+bool key_a_pressed = false;
+bool key_d_pressed = false;
+
+// Variável que controla o tipo de camera
+bool lookAt_camera = false;
 
 // Variável que controla encolhimento da nave
 float spaceship_resize = 1.0f;
@@ -320,6 +332,18 @@ int main(int argc, char* argv[])
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
+    // spaceship speed horizontal and vertical
+    float speedX = 0;
+    float speedY = 0;
+
+    // collision checking
+    bool colliding = false;
+
+    // Variaveis usadas para marcar o tempo
+    float t_prev = glfwGetTime(); // decorrido at� o frame anterior
+    float t_now = 0;              // decorrido at� o momento
+    float deltaT;                 // t_now - t_prev
+
     // Ficamos em loop, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
     {
@@ -341,6 +365,10 @@ int main(int argc, char* argv[])
         // os shaders de vértice e fragmentos).
         glUseProgram(program_id);
 
+        t_now = glfwGetTime();
+        deltaT = t_now - t_prev;
+        t_prev = t_now;
+
         // Computamos a posição da câmera utilizando coordenadas esféricas.  As
         // variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
         // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
@@ -350,16 +378,83 @@ int main(int argc, char* argv[])
         float z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
         float x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
 
+        float deltaPosX=0, deltaPosY=0, deltaPosZ=0;
+
+        if(key_w_pressed){
+            speedY -= 0.009;
+        }
+        if(!key_w_pressed && speedY<0){
+            speedY += 0.005;
+            if(speedY > 0 && !key_s_pressed){
+                speedY = 0;
+            }
+        }
+        if(key_s_pressed){
+            speedY += 0.006;
+        }
+        if(!key_s_pressed && speedY > 0){
+            speedY -= 0.0035;
+            if(speedY < 0 && !key_w_pressed){
+                speedY = 0;
+            }
+        }
+        deltaPosY = -speedY * deltaT;
+
+        if(key_d_pressed){
+            speedX -= 0.009;
+        }
+        if(!key_d_pressed && speedX<0){
+            speedX += 0.005;
+            if(speedX > 0 && !key_a_pressed){
+                speedX = 0;
+            }
+        }
+        if(key_a_pressed){
+            speedX += 0.009;
+        }
+        if(!key_a_pressed && speedX > 0){
+            speedX -= 0.005;
+            if(speedX < 0 && !key_d_pressed){
+                speedX = 0;
+            }
+        }
+        deltaPosX = -speedX * deltaT;
+
+        if(!colliding)
+        {
+            pos_ship_x += deltaPosX;
+            pos_ship_y += deltaPosY;
+            pos_ship_z += deltaPosZ;
+        }
+        else
+        {
+            speedX = 0;
+            speedY = 0;
+        }
+
         // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
         // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
-        glm::vec4 camera_position_c  = glm::vec4(x,y,z,1.0f); // Ponto "c", centro da câmera
+        glm::vec4 camera_position_c;
         glm::vec4 camera_lookat_l    = glm::vec4(0.0f,0.0f,0.0f,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
-        glm::vec4 camera_view_vector = camera_lookat_l - camera_position_c; // Vetor "view", sentido para onde a câmera está virada
+        glm::vec4 camera_view_vector;
         glm::vec4 camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
+
+        if(!lookAt_camera)
+        {
+            camera_position_c  = glm::vec4(pos_ship_x,pos_ship_y,pos_ship_z,1.0f); // Ponto "c", centro da camera
+            camera_view_vector = glm::vec4(-x,-y,-z,0.0f); // indica para onde a câmera está direcionada
+        }
 
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
         // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
-        glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
+        glm::mat4 view;
+        if(!lookAt_camera)
+        {
+            glm::vec4 camera_3rd_person = camera_position_c - camera_view_vector; // Camera recuada para 3rd pessoa
+            camera_3rd_person.y += 2.0f;
+            glm::vec4 camera_view_ajustado = camera_view_vector + glm::vec4(0.0f, -2.0f, 0.0f, 0.0f);
+            view = Matrix_Camera_View(camera_3rd_person, camera_view_ajustado, camera_up_vector);
+        }
 
         // Agora computamos a matriz de Projeção.
         glm::mat4 projection;
@@ -460,7 +555,7 @@ int main(int argc, char* argv[])
 //        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
 //        glUniform1i(object_id_uniform, SPACESHIP);
 //        DrawVirtualObject("spaceship");
-        model = Matrix_Translate(0.0f + spaceship_x_offset,-0.5f + spaceship_y_offset,0.0f - 0.25f)
+        model = Matrix_Translate(pos_ship_x,pos_ship_y,pos_ship_z)
             * Matrix_Scale(0.1 * spaceship_resize, 0.1 * spaceship_resize, 0.1 * spaceship_resize)
             * Matrix_Rotate_Y(M_PI)
             * Matrix_Rotate_Z(g_AngleX);
@@ -1252,30 +1347,47 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         fflush(stdout);
     }
 
-    // Se o usuário apertar a tecla UP
-    if (key == GLFW_KEY_W && (action == GLFW_PRESS || action == GLFW_REPEAT))
-    {
-        spaceship_y_offset += 0.1f;
-    }
+//    // Se o usuário apertar a tecla UP
+//    if (key == GLFW_KEY_W && (action == GLFW_PRESS || action == GLFW_REPEAT))
+//    {
+//        spaceship_y_offset += 0.1f;
+//    }
+//
+//    // Se o usuário apertar a tecla DOWN
+//    if (key == GLFW_KEY_S && (action == GLFW_PRESS || action == GLFW_REPEAT))
+//    {
+//        spaceship_y_offset -= 0.1f;
+//    }
+//
+//    // Se o usuário apertar a tecla LEFT
+//    if (key == GLFW_KEY_A && (action == GLFW_PRESS || action == GLFW_REPEAT))
+//    {
+//        // desviar no eixo x
+//        spaceship_x_offset -= 0.1f;
+//    }
+//
+//    // Se o usuário apertar a tecla RIGHT
+//    if (key == GLFW_KEY_D && (action == GLFW_PRESS || action == GLFW_REPEAT))
+//    {
+//        // desviar no eixo x
+//        spaceship_x_offset += 0.1f;
+//    }
 
-    // Se o usuário apertar a tecla DOWN
-    if (key == GLFW_KEY_S && (action == GLFW_PRESS || action == GLFW_REPEAT))
+    if(key == GLFW_KEY_W)
     {
-        spaceship_y_offset -= 0.1f;
+        key_w_pressed = (!action == GLFW_RELEASE);
     }
-
-    // Se o usuário apertar a tecla LEFT
-    if (key == GLFW_KEY_A && (action == GLFW_PRESS || action == GLFW_REPEAT))
+    if(key == GLFW_KEY_S)
     {
-        // desviar no eixo x
-        spaceship_x_offset -= 0.1f;
+        key_s_pressed = (!action == GLFW_RELEASE);
     }
-
-    // Se o usuário apertar a tecla RIGHT
-    if (key == GLFW_KEY_D && (action == GLFW_PRESS || action == GLFW_REPEAT))
+    if(key == GLFW_KEY_A)
     {
-        // desviar no eixo x
-        spaceship_x_offset += 0.1f;
+        key_a_pressed = (!action == GLFW_RELEASE);
+    }
+    if(key == GLFW_KEY_D)
+    {
+        key_d_pressed = (!action == GLFW_RELEASE);
     }
 }
 
