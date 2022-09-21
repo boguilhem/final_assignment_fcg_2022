@@ -179,7 +179,7 @@ float g_ForearmAngleX = 0.0f;
 float g_TorsoPositionX = 0.0f;
 float g_TorsoPositionY = 0.0f;
 
-// Variáveis que controlam encolhimento da nave
+// Variável que controla encolhimento da nave
 float spaceship_resize = 1.0f;
 
 // Variável que controla o tipo de projeção utilizada: perspectiva ou ortográfica.
@@ -377,8 +377,8 @@ int main(int argc, char* argv[])
 
         // Note que, no sistema de coordenadas da câmera, os planos near e far
         // estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.
-        float nearplane = -0.1f;  // Posição do "near plane"
-        float farplane  = -10.0f; // Posição do "far plane"
+        float nearplane = -1.1f;  // Posição do "near plane"
+        float farplane  = -500.0f; // Posição do "far plane"
 
         if (g_UsePerspectiveProjection)
         {
@@ -417,26 +417,22 @@ int main(int argc, char* argv[])
         //#define ASTEROID0  5
         //#define ASTEROID1  6
 
-        // instâncias da esfera-asteroide
+        /*
         model = Matrix_Translate(-1.0f,0.0f,0.0f) * Matrix_Scale(0.5, 0.5, 0.5)
               * Matrix_Rotate_Z(0.6f)
               * Matrix_Rotate_X(0.2f)
               * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, SPHERE);
-        DrawVirtualObject("sphere");
+        DrawVirtualObject("sphere");*/
 
-        /* tentativa de gerar instancias de model em loop
-        for (int i = 1; i <= 10; ++i)
+        // gerar instancias de asteroides em loop
+        for (int i = 1; i <= 25; ++i)
         {
-            char indstr[21]; // enough to hold all numbers up to 64-bits
-            sprintf(indstr, "%d", i);
-            std::string name = "sphere";
-            std::string result = name + indstr;
-            const char *sphere_i = result.c_str();
-
             float float_i = static_cast<float>(i);
-            model = Matrix_Translate(-1.0f,0.0f,0.0f) * Matrix_Scale(0.5, 0.5, 0.5)
+
+            model = Matrix_Translate(-5.0f + 0.25f * (float)glfwGetTime(),0.0f,-2.5f * float_i)
+              * Matrix_Scale(0.3f, 0.3f, 0.3f)
               * Matrix_Rotate_Z(0.6f)
               * Matrix_Rotate_X(0.2f)
               * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
@@ -444,8 +440,19 @@ int main(int argc, char* argv[])
             // Desenhamos o modelo da esfera
             glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
             glUniform1i(object_id_uniform, SPHERE);
-            DrawVirtualObject(sphere_i);
-        }*/
+            DrawVirtualObject("sphere");
+
+            model = Matrix_Translate(5.0f - 0.25f * (float)glfwGetTime(),0.0f,-5.0f * float_i)
+              * Matrix_Scale(0.3f, 0.3f, 0.3f)
+              * Matrix_Rotate_Z(0.6f)
+              * Matrix_Rotate_X(0.2f)
+              * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
+
+            // Desenhamos o modelo da esfera
+            glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+            glUniform1i(object_id_uniform, SPHERE);
+            DrawVirtualObject("sphere");
+        }
 
         // Desenhamos o modelo do coelho
         //model = Matrix_Translate(1.0f,0.0f,0.0f)
@@ -455,7 +462,7 @@ int main(int argc, char* argv[])
         //DrawVirtualObject("bunny");
 
         // Desenhamos o plano do chão
-        model = Matrix_Translate(0.0f,-1.0f,0.0f) * Matrix_Scale(100.0, 100.0, 10.0);
+        model = Matrix_Translate(0.0f,-1.0f,0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, PLANE);
         DrawVirtualObject("plane");
