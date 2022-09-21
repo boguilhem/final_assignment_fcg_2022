@@ -510,32 +510,54 @@ int main(int argc, char* argv[])
         DrawVirtualObject("sphere");*/
 
         // gerar instancias de asteroides em loop
-        for (int i = 1; i <= 25; ++i)
+        for (int i = 1; i <= 10; ++i)
         {
             float float_i = static_cast<float>(i);
 
-            model = Matrix_Translate(-5.0f + 0.25f * (float)glfwGetTime(),0.0f,-2.5f * float_i)
-              * Matrix_Scale(0.3f, 0.3f, 0.3f)
+            model = Matrix_Translate(-5.0f + 0.3f * (float)glfwGetTime(),0.0f,-2.5f * float_i + 2.0f * (float)glfwGetTime())
+              * Matrix_Scale(0.5f, 0.5f, 0.5f)
               * Matrix_Rotate_Z(0.6f)
               * Matrix_Rotate_X(0.2f)
               * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
 
-            // Desenhamos o modelo da esfera
             glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
             glUniform1i(object_id_uniform, SPHERE);
             DrawVirtualObject("sphere");
 
-            model = Matrix_Translate(5.0f - 0.25f * (float)glfwGetTime(),0.0f,-5.0f * float_i)
-              * Matrix_Scale(0.3f, 0.3f, 0.3f)
+            model = Matrix_Translate(5.0f - 0.3f * (float)glfwGetTime(),0.0f,-2.5f * float_i + 2.0f * (float)glfwGetTime())
+              * Matrix_Scale(0.5f, 0.5f, 0.5f)
               * Matrix_Rotate_Z(0.6f)
               * Matrix_Rotate_X(0.2f)
               * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
 
-            // Desenhamos o modelo da esfera
             glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
             glUniform1i(object_id_uniform, SPHERE);
             DrawVirtualObject("sphere");
+
+                for (int j = 1; j <= 4; ++j) {
+                float float_j = static_cast<float>(j);
+                model = Matrix_Translate(-7.5f + 0.3f * (float)glfwGetTime(),2.5f * float_j,-2.5f * float_i + 2.0f * (float)glfwGetTime())
+                  * Matrix_Scale(0.5f, 0.5f, 0.5f)
+                  * Matrix_Rotate_Z(0.6f)
+                  * Matrix_Rotate_X(0.2f)
+                  * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
+
+                glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+                glUniform1i(object_id_uniform, SPHERE);
+                DrawVirtualObject("sphere");
+
+                model = Matrix_Translate(7.5f + 0.3f * (float)glfwGetTime(),2.5f * float_j,-2.5f * float_i + 2.0f * (float)glfwGetTime())
+                  * Matrix_Scale(0.5f, 0.5f, 0.5f)
+                  * Matrix_Rotate_Z(0.6f)
+                  * Matrix_Rotate_X(0.2f)
+                  * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
+
+                glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+                glUniform1i(object_id_uniform, SPHERE);
+                DrawVirtualObject("sphere");
+            }
         }
+
 
         // Desenhamos o plano do chão
         model = Matrix_Translate(0.0f,-1.0f,0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f);
