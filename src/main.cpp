@@ -179,6 +179,9 @@ float g_ForearmAngleX = 0.0f;
 float g_TorsoPositionX = 0.0f;
 float g_TorsoPositionY = 0.0f;
 
+// Variáveis que controlam encolhimento da nave
+float spaceship_resize = 1.0f;
+
 // Variável que controla o tipo de projeção utilizada: perspectiva ou ortográfica.
 bool g_UsePerspectiveProjection = true;
 
@@ -411,10 +414,10 @@ int main(int argc, char* argv[])
         #define PLANE  2
         #define COW  3
         #define SPACESHIP  4
-//        #define ASTEROID0  5
-//        #define ASTEROID1  6
+        //#define ASTEROID0  5
+        //#define ASTEROID1  6
 
-//         Desenhamos o modelo da esfera
+        // instâncias da esfera-asteroide
         model = Matrix_Translate(-1.0f,0.0f,0.0f) * Matrix_Scale(0.5, 0.5, 0.5)
               * Matrix_Rotate_Z(0.6f)
               * Matrix_Rotate_X(0.2f)
@@ -422,6 +425,27 @@ int main(int argc, char* argv[])
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, SPHERE);
         DrawVirtualObject("sphere");
+
+        /* tentativa de gerar instancias de model em loop
+        for (int i = 1; i <= 10; ++i)
+        {
+            char indstr[21]; // enough to hold all numbers up to 64-bits
+            sprintf(indstr, "%d", i);
+            std::string name = "sphere";
+            std::string result = name + indstr;
+            const char *sphere_i = result.c_str();
+
+            float float_i = static_cast<float>(i);
+            model = Matrix_Translate(-1.0f,0.0f,0.0f) * Matrix_Scale(0.5, 0.5, 0.5)
+              * Matrix_Rotate_Z(0.6f)
+              * Matrix_Rotate_X(0.2f)
+              * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
+
+            // Desenhamos o modelo da esfera
+            glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+            glUniform1i(object_id_uniform, SPHERE);
+            DrawVirtualObject(sphere_i);
+        }*/
 
         // Desenhamos o modelo do coelho
         //model = Matrix_Translate(1.0f,0.0f,0.0f)
@@ -444,7 +468,7 @@ int main(int argc, char* argv[])
         //DrawVirtualObject("cow");
 
         // Desenhamos o modelo spaceship
-        model = Matrix_Translate(0.0f + spaceship_x_offset,-0.5f + spaceship_y_offset,0.0f) * Matrix_Scale(0.1, 0.1, 0.1) * Matrix_Rotate_Y(M_PI);
+        model = Matrix_Translate(0.0f + spaceship_x_offset,-0.5f + spaceship_y_offset,0.0f - 0.25f * (float)glfwGetTime()) * Matrix_Scale(0.1 * spaceship_resize, 0.1 * spaceship_resize, 0.1 * spaceship_resize) * Matrix_Rotate_Y(M_PI);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, SPACESHIP);
         DrawVirtualObject("spaceship");
@@ -1215,13 +1239,13 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     // Se o usuário apertar a tecla espaço, resetamos os ângulos de Euler para zero.
     if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
     {
-        g_AngleX = 0.0f;
-        g_AngleY = 0.0f;
-        g_AngleZ = 0.0f;
-        g_ForearmAngleX = 0.0f;
-        g_ForearmAngleZ = 0.0f;
-        g_TorsoPositionX = 0.0f;
-        g_TorsoPositionY = 0.0f;
+        spaceship_resize = 0.5f;
+    }
+
+    // Se o usuário apertar a tecla espaço, resetamos os ângulos de Euler para zero.
+    if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE)
+    {
+        spaceship_resize = 1.0f;
     }
 
     // Se o usuário apertar a tecla P, utilizamos projeção perspectiva.
