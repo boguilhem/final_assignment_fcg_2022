@@ -280,10 +280,11 @@ int main(int argc, char* argv[])
     LoadShadersFromFiles();
 
     // Carregamos duas imagens para serem utilizadas como textura
-    LoadTextureImage("../../data/spaceship/textures/DeathRow_Low_Cube001_[AlbedoM].png");      // TextureImage0
-    LoadTextureImage("../../data/asteroid0/textures/LPP_1001_Roughness.png");                   // TextureImage1
-    LoadTextureImage("../../data/spaceship/textures/DeathRow_Low_Cube001_[Metalness].png");      // TextureImage2
+    LoadTextureImage("../../data/spaceship/textures/DeathRow_Low_Cube001_[AlbedoM].png");     // TextureImage0
+    LoadTextureImage("../../data/asteroid0/textures/LPP_1001_Roughness.png");                 // TextureImage1
+    LoadTextureImage("../../data/spaceship/textures/DeathRow_Low_Cube001_[Metalness].png");   // TextureImage2
     LoadTextureImage("../../data/spaceship/textures/DeathRow_Low_Cube001_[Normal].png");      // TextureImage3
+    LoadTextureImage("../../data/2k_mercury.jpg");                                            // TextureImage4
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel("../../data/sphere.obj");
