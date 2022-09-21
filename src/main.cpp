@@ -287,8 +287,9 @@ int main(int argc, char* argv[])
     LoadTextureImage("../../data/spaceship/textures/DeathRow_Low_Cube001_[AlbedoM].png");     // TextureImage0
     LoadTextureImage("../../data/asteroid0/textures/LPP_1001_Roughness.png");                 // TextureImage1
     LoadTextureImage("../../data/spaceship/textures/DeathRow_Low_Cube001_[Metalness].png");   // TextureImage2
-    LoadTextureImage("../../data/spaceship/textures/DeathRow_Low_Cube001_[Normal].png");      // TextureImage3
-    LoadTextureImage("../../data/2k_mercury.jpg");                                            // TextureImage4
+    LoadTextureImage("../../data/Diffuse_2K.png");                                            // TextureImage3
+    LoadTextureImage("../../data/asteroid0/textures/LPP_1001_BaseColor.png");                 // TextureImage4
+    LoadTextureImage("../../data/asteroid1/textures/asteroid1.jpg");                          // TextureImage5
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel("../../data/sphere.obj");
@@ -497,8 +498,8 @@ int main(int argc, char* argv[])
         #define PLANE  1
         #define COW  2
         #define SPACESHIP  3
-        //#define ASTEROID0  4
-        //#define ASTEROID1  5
+        #define ASTEROID0  4
+        #define ASTEROID1  5
 
         /*
         model = Matrix_Translate(-1.0f,0.0f,0.0f) * Matrix_Scale(0.5, 0.5, 0.5)
@@ -521,8 +522,8 @@ int main(int argc, char* argv[])
               * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
 
             glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-            glUniform1i(object_id_uniform, SPHERE);
-            DrawVirtualObject("sphere");
+            glUniform1i(object_id_uniform, ASTEROID0);
+            DrawVirtualObject("asteroid0");
 
             model = Matrix_Translate(5.0f - 0.3f * (float)glfwGetTime(),0.0f,-2.5f * float_i + 2.0f * (float)glfwGetTime())
               * Matrix_Scale(0.5f, 0.5f, 0.5f)
@@ -531,8 +532,8 @@ int main(int argc, char* argv[])
               * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
 
             glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-            glUniform1i(object_id_uniform, SPHERE);
-            DrawVirtualObject("sphere");
+            glUniform1i(object_id_uniform, ASTEROID0);
+            DrawVirtualObject("asteroid0");
 
                 for (int j = 1; j <= 4; ++j) {
                 float float_j = static_cast<float>(j);
@@ -543,8 +544,8 @@ int main(int argc, char* argv[])
                   * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
 
                 glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-                glUniform1i(object_id_uniform, SPHERE);
-                DrawVirtualObject("sphere");
+                glUniform1i(object_id_uniform, ASTEROID0);
+                DrawVirtualObject("asteroid0");
 
                 model = Matrix_Translate(7.5f + 0.3f * (float)glfwGetTime(),2.5f * float_j,-2.5f * float_i + 2.0f * (float)glfwGetTime())
                   * Matrix_Scale(0.5f, 0.5f, 0.5f)
@@ -553,8 +554,8 @@ int main(int argc, char* argv[])
                   * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
 
                 glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-                glUniform1i(object_id_uniform, SPHERE);
-                DrawVirtualObject("sphere");
+                glUniform1i(object_id_uniform, ASTEROID0);
+                DrawVirtualObject("asteroid0");
             }
         }
 
@@ -585,17 +586,17 @@ int main(int argc, char* argv[])
         glUniform1i(object_id_uniform, SPACESHIP);
         DrawVirtualObject("spaceship");
 
-//        // Desenhamos o modelo asteroid0
-//        model = Matrix_Translate(0.0f,-5.0f,1.0f) * Matrix_Scale(0.1, 0.1, 0.1);
-//        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-//        glUniform1i(object_id_uniform, ASTEROID0);
-//        DrawVirtualObject("asteroid0");
-//
-//        // Desenhamos o modelo asteroid1
-//        model = Matrix_Translate(0.0f,-5.0f,1.0f) * Matrix_Scale(10.0, 10.0, 10.0);
-//        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-//        glUniform1i(object_id_uniform, ASTEROID1);
-//        DrawVirtualObject("asteroid1");
+        // Desenhamos o modelo asteroid0
+        model = Matrix_Translate(0.0f,-5.0f,1.0f) * Matrix_Scale(0.1, 0.1, 0.1);
+        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        glUniform1i(object_id_uniform, ASTEROID0);
+        DrawVirtualObject("asteroid0");
+
+        // Desenhamos o modelo asteroid1
+        model = Matrix_Translate(0.0f,-5.0f,1.0f) * Matrix_Scale(10.0, 10.0, 10.0);
+        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        glUniform1i(object_id_uniform, ASTEROID1);
+        DrawVirtualObject("asteroid1");
 
         // Imprimimos na tela os ângulos de Euler que controlam a rotação do
         // terceiro cubo.
