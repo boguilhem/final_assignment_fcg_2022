@@ -142,9 +142,16 @@ struct SceneObject
 // Estrutura de asteroides (obstaculos)
 struct AsteroidObj
 {
-    float pos_x = 0.0f;
-    float pos_y = 0.0f;
-    float pos_z = -40.0f;
+    float pos_x;
+    float pos_y;
+    float pos_z;
+
+    AsteroidObj()
+    {
+        pos_x = 0.0f;
+        pos_y = 0.0f;
+        pos_z = -40.0f;
+    }
 };
 
 // Abaixo definimos variáveis globais utilizadas em várias funções do código.
@@ -351,6 +358,7 @@ int main(int argc, char* argv[])
     // variaveis de auxilio
     srand (static_cast <unsigned> (time(0)));
     std::vector<AsteroidObj> asteroides;
+    AsteroidObj asteroide_hard;
 
     // collision checking
     bool colliding = false;
@@ -394,6 +402,7 @@ int main(int argc, char* argv[])
         float z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
         float x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
 
+        // Movimentação da nave
         float deltaPosX=0, deltaPosY=0, deltaPosZ=0;
 
         if(key_w_pressed){
@@ -516,28 +525,33 @@ int main(int argc, char* argv[])
         #define ASTEROID0  4
         #define ASTEROID1  5
 
-
+        // apertar tecla 'I' para comecar a gerar obstaculos
         if (game_start == true) {
-            // check if asteroid group z axis reached spaceship
-            // - adds extra asteroids & increase speed
-            // - creates new asteroid array with new x/y axis respawn positions
+            // apertar 'R' para reiniciar o jogo
             if (game_restart == true) {
+                asteroides.clear();
                 asteroid_count = 1;
-                asteroides[0].pos_x = -2.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/10.0f));
-                asteroides[0].pos_y = 0.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/10.0f));
-                asteroides[0].pos_z = -40.0f;
                 asteroid_speed_multiplier = 1.0f;
+                AsteroidObj asteroid;
+                asteroid.pos_x = -2.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/10.0f));
+                asteroid.pos_y = 0.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/10.0f));
+                asteroid.pos_z = -40.0f;
+                asteroides.push_back(asteroid);
                 game_restart = false;
             }
+            // confere se asteroides passaram da nave
             if (asteroides.size() == 0 || asteroides[0].pos_z >= 5.0f) {
+                // novo round: add asteroide extra & aumenta velocidade
                 if (asteroid_count == 11) {
                     asteroid_count = 1;
                     asteroid_speed_multiplier += 0.25f;
                 }
+                // limite de velocidade
                 if (asteroid_speed_multiplier >= 10.0f) {
                     asteroid_speed_multiplier = 10.0f;
                 };
 
+                // gera novas posicoes iniciais
                 asteroides.clear();
                 for (int i = 0; i < asteroid_count; ++i) {
                     AsteroidObj asteroid;
@@ -555,12 +569,14 @@ int main(int argc, char* argv[])
             // gerar instancias de asteroides em loop
             for (int i = 0; i < asteroid_count; ++i)
             {
+                // asteroides normais
                 model = Matrix_Translate(asteroides[i].pos_x, asteroides[i].pos_y, asteroides[i].pos_z)
                   * Matrix_Scale(0.75f, 0.75f, 0.75f)
                   * Matrix_Rotate_Z(0.6f)
                   * Matrix_Rotate_X(0.2f)
                   * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.25f);
 
+                // movimentacao asteroides normais
                 asteroides[i].pos_z += 0.05f * asteroid_speed_multiplier;
 
                 glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
@@ -1688,4 +1704,3 @@ void PrintObjModelInfo(ObjModel* model)
 
 // set makeprg=cd\ ..\ &&\ make\ run\ >/dev/null
 // vim: set spell spelllang=pt_br :
-
