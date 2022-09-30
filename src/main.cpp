@@ -144,7 +144,7 @@ struct AsteroidObj
 {
     float pos_x = 0.0f;
     float pos_y = 0.0f;
-    float pos_z = 0.0f;
+    float pos_z = -40.0f;
 };
 
 // Abaixo definimos variáveis globais utilizadas em várias funções do código.
@@ -205,6 +205,7 @@ bool g_ShowInfoText = true;
 int asteroid_count = 1;
 float asteroid_speed_multiplier = 1.0f;
 bool game_start = false;
+bool game_restart = false;
 
 // Variáveis que definem um programa de GPU (shaders). Veja função LoadShadersFromFiles().
 GLuint vertex_shader_id;
@@ -476,8 +477,8 @@ int main(int argc, char* argv[])
 
         // Note que, no sistema de coordenadas da câmera, os planos near e far
         // estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.
-        float nearplane = -1.1f;  // Posição do "near plane"
-        float farplane  = -50.0f; // Posição do "far plane"
+        float nearplane = -1.0f;  // Posição do "near plane"
+        float farplane  = -100.0f; // Posição do "far plane"
 
         if (g_UsePerspectiveProjection)
         {
@@ -520,10 +521,15 @@ int main(int argc, char* argv[])
             // check if asteroid group z axis reached spaceship
             // - adds extra asteroids & increase speed
             // - creates new asteroid array with new x/y axis respawn positions
-            if (asteroides.size() == 0 || asteroides[0].pos_z >= 10.0f) {
-                if (asteroid_count == 10) {
+            if (game_restart == true) {
+                asteroid_count = 1;
+                asteroid_speed_multiplier = 1.0f;
+                game_restart = false;
+            }
+            if (asteroides.size() == 0 || asteroides[0].pos_z >= 5.0f) {
+                if (asteroid_count == 11) {
                     asteroid_count = 1;
-                    asteroid_speed_multiplier += 1.0f;
+                    asteroid_speed_multiplier += 0.25f;
                 }
                 if (asteroid_speed_multiplier >= 10.0f) {
                     asteroid_speed_multiplier = 10.0f;
@@ -533,9 +539,9 @@ int main(int argc, char* argv[])
                 for (int i = 0; i < asteroid_count; ++i) {
                     AsteroidObj asteroid;
 
-                    asteroid.pos_x = 0.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/5.0f));
-                    asteroid.pos_y = -2.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/5.0f));
-                    asteroid.pos_z = -25.0f;
+                    asteroid.pos_x = -7.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/15.0f));
+                    asteroid.pos_y = 0.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/10.0f));
+                    asteroid.pos_z = -40.0f;
 
                     asteroides.push_back(asteroid);
                 }
@@ -552,7 +558,7 @@ int main(int argc, char* argv[])
                   * Matrix_Rotate_X(0.2f)
                   * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.25f);
 
-                asteroides[i].pos_z += 0.01f * asteroid_speed_multiplier;
+                asteroides[i].pos_z += 0.05f * asteroid_speed_multiplier;
 
                 glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
                 glUniform1i(object_id_uniform, ASTEROID0);
@@ -1340,8 +1346,11 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     }
 
     // Se o usuário apertar a tecla R, recarregamos os shaders dos arquivos "shader_fragment.glsl" e "shader_vertex.glsl".
+    // tambem reinicia o jogo
     if (key == GLFW_KEY_R && action == GLFW_PRESS)
     {
+        game_restart = true;
+
         LoadShadersFromFiles();
         fprintf(stdout,"Shaders recarregados!\n");
         fflush(stdout);
