@@ -179,9 +179,24 @@ void main()
     {
         U = texcoords.x;
         V = texcoords.y;
-        Kd = texture(TextureImage4, vec2(U,V)).rgb; // NAO FUNCIONANDO TEXTURA 4S
+        Kd = texture(TextureImage1, vec2(U,V)).rgb; // NAO FUNCIONANDO TEXTURA 4S
         Ks = vec3(0.08,0.08,0.08); // Refletância especular
         Ka = Kd/4; // Refletância ambiente
+
+        //vec4 bbox_center = (bbox_min + bbox_max) / 2.0;
+
+        //vec4 plinha = bbox_center + (position_model - bbox_center) / length(position_model - bbox_center);
+        //vec4 pvector = plinha - bbox_center;
+
+        //float theta = atan(pvector.x, pvector.z);
+        //float phi = asin(pvector.y);
+
+        //U = (theta + M_PI)/(2*M_PI);
+        //V = (phi + M_PI_2)/M_PI;
+        //Kd = texture(TextureImage1, vec2(U,V)).rgb;
+        //Ks = vec3(0.0,0.0,0.0);
+        //Ka = vec3(0.4,0.2,0.04);
+        //q = 1.0;
     }
     else if ( object_id == ASTEROID1 )
     {

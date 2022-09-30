@@ -20,6 +20,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <ctime>
 
 // Headers abaixo são específicos de C++
 #include <map>
@@ -138,6 +139,14 @@ struct SceneObject
     glm::vec3    bbox_max;
 };
 
+// Estrutura de asteroides (obstaculos)
+struct AsteroidObj
+{
+    float pos_x = 0.0f;
+    float pos_y = 0.0f;
+    float pos_z = 0.0f;
+};
+
 // Abaixo definimos variáveis globais utilizadas em várias funções do código.
 
 // A cena virtual é uma lista de objetos nomeados, guardados em um dicionário
@@ -192,9 +201,10 @@ bool g_UsePerspectiveProjection = true;
 // Variável que controla se o texto informativo será mostrado na tela.
 bool g_ShowInfoText = true;
 
-// VARIAVEIS DE MOVIMENTAÇÃO SPACESHIP
-float spaceship_x_offset = 0.0f;
-float spaceship_y_offset = 0.0f;
+// VARS DE QUANTIDADE E MULTIPLICADOR DE VELOCIDADE DOS ASTEROIDES
+int asteroid_count = 1;
+float asteroid_speed_multiplier = 1.0f;
+bool game_start = false;
 
 // Variáveis que definem um programa de GPU (shaders). Veja função LoadShadersFromFiles().
 GLuint vertex_shader_id;
@@ -337,6 +347,10 @@ int main(int argc, char* argv[])
     float speedX = 0;
     float speedY = 0;
 
+    // variaveis de auxilio
+    srand (static_cast <unsigned> (time(0)));
+    std::vector<AsteroidObj> asteroides;
+
     // collision checking
     bool colliding = false;
 
@@ -463,7 +477,7 @@ int main(int argc, char* argv[])
         // Note que, no sistema de coordenadas da câmera, os planos near e far
         // estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.
         float nearplane = -1.1f;  // Posição do "near plane"
-        float farplane  = -500.0f; // Posição do "far plane"
+        float farplane  = -50.0f; // Posição do "far plane"
 
         if (g_UsePerspectiveProjection)
         {
@@ -501,57 +515,44 @@ int main(int argc, char* argv[])
         #define ASTEROID0  4
         #define ASTEROID1  5
 
-        /*
-        model = Matrix_Translate(-1.0f,0.0f,0.0f) * Matrix_Scale(0.5, 0.5, 0.5)
-              * Matrix_Rotate_Z(0.6f)
-              * Matrix_Rotate_X(0.2f)
-              * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
-        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, SPHERE);
-        DrawVirtualObject("sphere");*/
 
-        // gerar instancias de asteroides em loop
-        for (int i = 1; i <= 10; ++i)
-        {
-            float float_i = static_cast<float>(i);
+        if (game_start == true) {
+            // check if asteroid group z axis reached spaceship
+            // - adds extra asteroids & increase speed
+            // - creates new asteroid array with new x/y axis respawn positions
+            if (asteroides.size() == 0 || asteroides[0].pos_z >= 10.0f) {
+                if (asteroid_count == 10) {
+                    asteroid_count = 1;
+                    asteroid_speed_multiplier += 1.0f;
+                }
+                if (asteroid_speed_multiplier >= 10.0f) {
+                    asteroid_speed_multiplier = 10.0f;
+                };
 
-            model = Matrix_Translate(-5.0f + 0.3f * (float)glfwGetTime(),0.0f,-2.5f * float_i + 2.0f * (float)glfwGetTime())
-              * Matrix_Scale(0.5f, 0.5f, 0.5f)
-              * Matrix_Rotate_Z(0.6f)
-              * Matrix_Rotate_X(0.2f)
-              * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
+                asteroides.clear();
+                for (int i = 0; i < asteroid_count; ++i) {
+                    AsteroidObj asteroid;
 
-            glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-            glUniform1i(object_id_uniform, ASTEROID0);
-            DrawVirtualObject("asteroid0");
+                    asteroid.pos_x = 0.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/5.0f));
+                    asteroid.pos_y = -2.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/5.0f));
+                    asteroid.pos_z = -25.0f;
 
-            model = Matrix_Translate(5.0f - 0.3f * (float)glfwGetTime(),0.0f,-2.5f * float_i + 2.0f * (float)glfwGetTime())
-              * Matrix_Scale(0.5f, 0.5f, 0.5f)
-              * Matrix_Rotate_Z(0.6f)
-              * Matrix_Rotate_X(0.2f)
-              * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
+                    asteroides.push_back(asteroid);
+                }
 
-            glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-            glUniform1i(object_id_uniform, ASTEROID0);
-            DrawVirtualObject("asteroid0");
+                asteroid_count += 1;
+            }
 
-                for (int j = 1; j <= 4; ++j) {
-                float float_j = static_cast<float>(j);
-                model = Matrix_Translate(-7.5f + 0.3f * (float)glfwGetTime(),2.5f * float_j,-2.5f * float_i + 2.0f * (float)glfwGetTime())
-                  * Matrix_Scale(0.5f, 0.5f, 0.5f)
+            // gerar instancias de asteroides em loop
+            for (int i = 0; i < asteroid_count; ++i)
+            {
+                model = Matrix_Translate(asteroides[i].pos_x, asteroides[i].pos_y, asteroides[i].pos_z)
+                  * Matrix_Scale(0.75f, 0.75f, 0.75f)
                   * Matrix_Rotate_Z(0.6f)
                   * Matrix_Rotate_X(0.2f)
-                  * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
+                  * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.25f);
 
-                glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-                glUniform1i(object_id_uniform, ASTEROID0);
-                DrawVirtualObject("asteroid0");
-
-                model = Matrix_Translate(7.5f + 0.3f * (float)glfwGetTime(),2.5f * float_j,-2.5f * float_i + 2.0f * (float)glfwGetTime())
-                  * Matrix_Scale(0.5f, 0.5f, 0.5f)
-                  * Matrix_Rotate_Z(0.6f)
-                  * Matrix_Rotate_X(0.2f)
-                  * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
+                asteroides[i].pos_z += 0.01f * asteroid_speed_multiplier;
 
                 glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
                 glUniform1i(object_id_uniform, ASTEROID0);
@@ -559,25 +560,13 @@ int main(int argc, char* argv[])
             }
         }
 
-
         // Desenhamos o plano do chão
         model = Matrix_Translate(0.0f,-1.0f,0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, PLANE);
         DrawVirtualObject("plane");
 
-        //Desenhamos o modelo da vaca
-        //model = Matrix_Translate(1.0f,0.0f,0.0f)
-        //     * Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f);
-        //glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        //glUniform1i(object_id_uniform, COW);
-        //DrawVirtualObject("cow");
-
         // Desenhamos o modelo spaceship
-//        model = Matrix_Translate(0.0f + spaceship_x_offset,-0.5f + spaceship_y_offset,0.0f - 0.25f * (float)glfwGetTime()) * Matrix_Scale(0.1 * spaceship_resize, 0.1 * spaceship_resize, 0.1 * spaceship_resize) * Matrix_Rotate_Y(M_PI);
-//        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-//        glUniform1i(object_id_uniform, SPACESHIP);
-//        DrawVirtualObject("spaceship");
         model = Matrix_Translate(pos_ship_x,pos_ship_y,pos_ship_z)
             * Matrix_Scale(0.1 * spaceship_resize, 0.1 * spaceship_resize, 0.1 * spaceship_resize)
             * Matrix_Rotate_Y(M_PI)
@@ -585,18 +574,6 @@ int main(int argc, char* argv[])
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, SPACESHIP);
         DrawVirtualObject("spaceship");
-
-        // Desenhamos o modelo asteroid0
-        model = Matrix_Translate(0.0f,-5.0f,1.0f) * Matrix_Scale(0.1, 0.1, 0.1);
-        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, ASTEROID0);
-        DrawVirtualObject("asteroid0");
-
-        // Desenhamos o modelo asteroid1
-        model = Matrix_Translate(0.0f,-5.0f,1.0f) * Matrix_Scale(10.0, 10.0, 10.0);
-        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, ASTEROID1);
-        DrawVirtualObject("asteroid1");
 
         // Imprimimos na tela os ângulos de Euler que controlam a rotação do
         // terceiro cubo.
@@ -1370,31 +1347,11 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         fflush(stdout);
     }
 
-//    // Se o usuário apertar a tecla UP
-//    if (key == GLFW_KEY_W && (action == GLFW_PRESS || action == GLFW_REPEAT))
-//    {
-//        spaceship_y_offset += 0.1f;
-//    }
-//
-//    // Se o usuário apertar a tecla DOWN
-//    if (key == GLFW_KEY_S && (action == GLFW_PRESS || action == GLFW_REPEAT))
-//    {
-//        spaceship_y_offset -= 0.1f;
-//    }
-//
-//    // Se o usuário apertar a tecla LEFT
-//    if (key == GLFW_KEY_A && (action == GLFW_PRESS || action == GLFW_REPEAT))
-//    {
-//        // desviar no eixo x
-//        spaceship_x_offset -= 0.1f;
-//    }
-//
-//    // Se o usuário apertar a tecla RIGHT
-//    if (key == GLFW_KEY_D && (action == GLFW_PRESS || action == GLFW_REPEAT))
-//    {
-//        // desviar no eixo x
-//        spaceship_x_offset += 0.1f;
-//    }
+    // Apertar a tecla I para iniciar jogo (obstaculos)
+    if (key == GLFW_KEY_I && action == GLFW_PRESS)
+    {
+        game_start = true;
+    }
 
     if(key == GLFW_KEY_W)
     {
