@@ -478,7 +478,7 @@ int main(int argc, char* argv[])
         // Note que, no sistema de coordenadas da câmera, os planos near e far
         // estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.
         float nearplane = -1.0f;  // Posição do "near plane"
-        float farplane  = -100.0f; // Posição do "far plane"
+        float farplane  = -60.0f; // Posição do "far plane"
 
         if (g_UsePerspectiveProjection)
         {
@@ -523,6 +523,9 @@ int main(int argc, char* argv[])
             // - creates new asteroid array with new x/y axis respawn positions
             if (game_restart == true) {
                 asteroid_count = 1;
+                asteroides[0].pos_x = -2.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/10.0f));
+                asteroides[0].pos_y = 0.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/10.0f));
+                asteroides[0].pos_z = -40.0f;
                 asteroid_speed_multiplier = 1.0f;
                 game_restart = false;
             }
@@ -539,7 +542,7 @@ int main(int argc, char* argv[])
                 for (int i = 0; i < asteroid_count; ++i) {
                     AsteroidObj asteroid;
 
-                    asteroid.pos_x = -7.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/15.0f));
+                    asteroid.pos_x = -2.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/10.0f));
                     asteroid.pos_y = 0.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/10.0f));
                     asteroid.pos_z = -40.0f;
 
