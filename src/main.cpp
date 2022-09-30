@@ -1318,7 +1318,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         g_AngleX += delta;
     }
 
-    // Se o usuário apertar a tecla espaço, resetamos os ângulos de Euler para zero.
+    // Se o usuário apertar a tecla espaço, ativa/desativa encolhimento da nave
     if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
     {
         spaceship_resize = 0.5f;
@@ -1355,7 +1355,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         game_restart = true;
 
         LoadShadersFromFiles();
-        fprintf(stdout,"Shaders recarregados!\n");
+        fprintf(stdout,"Jogo reiniciado + Shaders recarregados!\n");
         fflush(stdout);
     }
 
