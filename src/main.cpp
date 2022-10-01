@@ -213,7 +213,7 @@ bool g_UsePerspectiveProjection = true;
 bool g_ShowInfoText = true;
 
 // VARS DE QUANTIDADE E MULTIPLICADOR DE VELOCIDADE DOS ASTEROIDES
-int asteroid_count = 1;
+int asteroid_count = 0;
 float asteroid_speed_multiplier = 1.0f;
 bool game_start = false;
 bool game_restart = false;
@@ -553,7 +553,8 @@ int main(int argc, char* argv[])
                 game_restart = false;
             }
             // confere se asteroides passaram da nave
-            if (asteroides.size() == 0 || asteroides[0].pos_z >= 10.0f) {
+            if (asteroid_count == 0 || asteroides[0].pos_z >= 10.0f) {
+                asteroid_count += 1;
                 // novo round: add asteroide extra & aumenta velocidade
                 if (asteroid_count == 11) {
                     asteroid_count = 1;
@@ -580,7 +581,7 @@ int main(int argc, char* argv[])
             }
 
             // gerar instancias de asteroides em loop
-            for (int i = 0; i < asteroid_count; i++)
+            for (int i = 0; i < asteroides.size(); i++)
             {
                 // asteroides normais
                 model = Matrix_Translate(asteroides[i].pos_x, asteroides[i].pos_y, asteroides[i].pos_z)
