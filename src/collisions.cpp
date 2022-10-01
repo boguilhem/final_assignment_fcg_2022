@@ -8,9 +8,9 @@ bool inRange(float x, float bound1, float bound2)
     return (x <= high && x >= low);
 }
 
-bool collidingTest(float limite, float bboxMax, float bboxMin)
+bool collidingTest(float limite1, float limite2, float bboxMax, float bboxMin)
 {
-    bool isColliding = inRange(limite, bboxMax, bboxMin) || inRange(-limite, bboxMax, bboxMin);
+    bool isColliding = inRange(limite1, bboxMax, bboxMin) || inRange(limite2, bboxMax, bboxMin);
 
     return isColliding;
 }

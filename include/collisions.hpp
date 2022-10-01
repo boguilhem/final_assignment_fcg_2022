@@ -8,4 +8,4 @@
 
 bool inRange(float x, float bound1, float bound2);
 
-bool collidingTest(float limite, float bboxMax, float bboxMin);
+bool collidingTest(float limite1, float limite2, float bboxMax, float bboxMin);
