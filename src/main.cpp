@@ -601,7 +601,7 @@ int main(int argc, char* argv[])
             for (int i = 0; i < asteroid_count; i++){
                 if(collisionSpaceshipAsteroid(camera_position_c, asteroides[i])){
                     asteroides.clear();
-                    asteroid_count = 1;
+                    asteroid_count = 0;
                     asteroid_speed_multiplier = 1.0f;
                     colliding = true;
                     LoadShadersFromFiles();
