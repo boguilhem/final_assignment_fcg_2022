@@ -366,7 +366,7 @@ int main(int argc, char* argv[])
 
     // collision checking
     bool colliding = false;
-    float limite_x = 10.0f;
+    float limite_x = 20.0f;
     float limite_y = 1.0f;
 
     // Variaveis usadas para marcar o tempo
@@ -412,19 +412,19 @@ int main(int argc, char* argv[])
         float deltaPosX=0, deltaPosY=0, deltaPosZ=0;
 
         if(key_w_pressed){
-            speedY -= 0.009;
+            speedY -= 0.05;
         }
         if(!key_w_pressed && speedY<0){
-            speedY += 0.005;
+            speedY += 0.08;
             if(speedY > 0 && !key_s_pressed){
                 speedY = 0;
             }
         }
         if(key_s_pressed){
-            speedY += 0.006;
+            speedY += 0.05;
         }
         if(!key_s_pressed && speedY > 0){
-            speedY -= 0.0035;
+            speedY -= 0.08;
             if(speedY < 0 && !key_w_pressed){
                 speedY = 0;
             }
@@ -432,19 +432,19 @@ int main(int argc, char* argv[])
         deltaPosY = -speedY * deltaT;
 
         if(key_d_pressed){
-            speedX -= 0.009;
+            speedX -= 0.05;
         }
         if(!key_d_pressed && speedX<0){
-            speedX += 0.005;
+            speedX += 0.08;
             if(speedX > 0 && !key_a_pressed){
                 speedX = 0;
             }
         }
         if(key_a_pressed){
-            speedX += 0.009;
+            speedX += 0.05;
         }
         if(!key_a_pressed && speedX > 0){
-            speedX -= 0.005;
+            speedX -= 0.08;
             if(speedX < 0 && !key_d_pressed){
                 speedX = 0;
             }
@@ -605,7 +605,7 @@ int main(int argc, char* argv[])
             pos_ship_x -= deltaPosX;
         }
 
-        if(collidingTest(limite_y*5, -limite_y, spaceship_bbox_max.y, spaceship_bbox_min.y)) {
+        if(collidingTest(limite_y*10, -limite_y, spaceship_bbox_max.y, spaceship_bbox_min.y)) {
             colliding = true;
             speedY = 0;
             pos_ship_y -= deltaPosY;
@@ -1352,8 +1352,8 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
     if (g_RightMouseButtonPressed)
     {
         // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
-        float dx = xpos - g_LastCursorPosX;
-        float dy = ypos - g_LastCursorPosY;
+//        float dx = xpos - g_LastCursorPosX;
+//        float dy = ypos - g_LastCursorPosY;
 
         // Atualizamos as variáveis globais para armazenar a posição atual do
         // cursor como sendo a última posição conhecida do cursor.
@@ -1364,8 +1364,8 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
     if (g_MiddleMouseButtonPressed)
     {
         // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
-        float dx = xpos - g_LastCursorPosX;
-        float dy = ypos - g_LastCursorPosY;
+//        float dx = xpos - g_LastCursorPosX;
+//        float dy = ypos - g_LastCursorPosY;
 
         // Atualizamos as variáveis globais para armazenar a posição atual do
         // cursor como sendo a última posição conhecida do cursor.
