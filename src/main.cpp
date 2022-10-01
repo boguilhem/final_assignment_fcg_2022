@@ -454,7 +454,7 @@ int main(int argc, char* argv[])
         // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
         // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
         glm::vec4 camera_position_c;
-        glm::vec4 camera_lookat_l    = glm::vec4(0.0f,0.0f,0.0f,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
+//        glm::vec4 camera_lookat_l    = glm::vec4(0.0f,0.0f,0.0f,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
         glm::vec4 camera_view_vector;
         glm::vec4 camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 
@@ -599,16 +599,27 @@ int main(int argc, char* argv[])
         glm::vec4 spaceship_bbox_max = getBbox_max(&spaceshipmodel, model);
 
         colliding = false;
+        // se colide nos limites laterais
         if(collidingTest(limite_x, -limite_x, spaceship_bbox_max.x, spaceship_bbox_min.x)) {
             colliding = true;
-            speedX = 0;
-            pos_ship_x -= deltaPosX;
+            if(speedX < 0) {
+                speedY = 0;
+                pos_ship_x -= 0.05;
+            } else if(speedX > 0) {
+                speedX = 0;
+                pos_ship_x += 0.05;
+            }
         }
-
-        if(collidingTest(limite_y*10, -limite_y, spaceship_bbox_max.y, spaceship_bbox_min.y)) {
+        // se colide nos limites verticais
+        else if(collidingTest(limite_y*10, -limite_y, spaceship_bbox_max.y, spaceship_bbox_min.y)) {
             colliding = true;
-            speedY = 0;
-            pos_ship_y -= deltaPosY;
+            if(speedY < 0) {
+                speedY = 0;
+                pos_ship_y -= 0.05;
+            } else if(speedY > 0) {
+                speedY = 0;
+                pos_ship_y += 0.05;
+            }
         }
 
         if(!colliding)
