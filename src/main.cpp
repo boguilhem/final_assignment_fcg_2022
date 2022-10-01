@@ -362,7 +362,6 @@ int main(int argc, char* argv[])
     // variaveis de auxilio
     srand (static_cast <unsigned> (time(0)));
     std::vector<AsteroidObj> asteroides;
-    AsteroidObj asteroide_hard;
 
     // collision checking
     bool colliding = false;
@@ -481,7 +480,7 @@ int main(int argc, char* argv[])
         // Note que, no sistema de coordenadas da câmera, os planos near e far
         // estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.
         float nearplane = -1.0f;  // Posição do "near plane"
-        float farplane  = -60.0f; // Posição do "far plane"
+        float farplane  = -75.0f; // Posição do "far plane"
 
         if (g_UsePerspectiveProjection)
         {
@@ -569,8 +568,8 @@ int main(int argc, char* argv[])
                 for (int i = 0; i < asteroid_count; i++) {
                     AsteroidObj asteroid;
 
-                    asteroid.pos_x = -2.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/10.0f));
-                    asteroid.pos_y = 0.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/10.0f));
+                    asteroid.pos_x = -2.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/15.0f));
+                    asteroid.pos_y = 0.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/7.5f));
                     asteroid.pos_z = -40.0f;
 
                     asteroides.push_back(asteroid);
@@ -587,10 +586,10 @@ int main(int argc, char* argv[])
                   * Matrix_Scale(0.75f, 0.75f, 0.75f)
                   * Matrix_Rotate_Z(0.6f)
                   * Matrix_Rotate_X(0.2f)
-                  * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.25f);
+                  * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.5f);
 
                 // movimentacao asteroides normais
-                asteroides[i].pos_z += 0.05f * asteroid_speed_multiplier;
+                asteroides[i].pos_z += 0.1f * asteroid_speed_multiplier;
 
                 glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
                 glUniform1i(object_id_uniform, ASTEROID0);
@@ -612,6 +611,32 @@ int main(int argc, char* argv[])
                 }
             }
         }
+        // Desenhamos o plano da 'parede' esquerda (ROTACIONAR NOS EIXOS X E Y + DESLOCAR PRA ESQUERDA NO EIXO X)
+        //model = Matrix_Translate(0.0f,-1.0f,0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f);
+        //glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        //glUniform1i(object_id_uniform, PLANE);
+        //DrawVirtualObject("plane");
+
+        // Desenhamos o plano da 'parede' direita (ROTACIONAR NOS EIXOS X E Y + DESLOCAR PRA DIREITA NO EIXO X)
+        //model = Matrix_Translate(0.0f,-1.0f,0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f);
+        //glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        //glUniform1i(object_id_uniform, PLANE);
+        //DrawVirtualObject("plane");
+
+        // Desenhamos o plano do 'teto' (DESLOCAR PRA CIMA NO EIXO Y)
+        //model = Matrix_Translate(0.0f,-1.0f,0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f);
+        //glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        //glUniform1i(object_id_uniform, PLANE);
+        //DrawVirtualObject("plane");
+
+        // Desenhamos o modelo spaceship
+        model = Matrix_Translate(pos_ship_x,pos_ship_y,pos_ship_z)
+            * Matrix_Scale(0.1 * spaceship_resize, 0.1 * spaceship_resize, 0.1 * spaceship_resize)
+            * Matrix_Rotate_Y(M_PI)
+            * Matrix_Rotate_Z(g_AngleX);
+        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        glUniform1i(object_id_uniform, SPACESHIP);
+        DrawVirtualObject("spaceship");
 
 
         colliding = false;
