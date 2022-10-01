@@ -15,4 +15,21 @@ bool collidingTest(float limite1, float limite2, float bboxMax, float bboxMin)
     return isColliding;
 }
 
+bool collisionSpaceshipAsteroid(glm::vec4 spaceship_pos, AsteroidObj asteroide){
+
+//    bool collision_x = true;
+//
+//    bool collision_y = false;
+//
+//    bool collision_z = true;
+
+    bool collision_x = collidingTest(asteroide.pos_x-0.1f, asteroide.pos_x+0.1f, spaceship_pos.x-2.0f, spaceship_pos.x+2.0f);
+
+    bool collision_y = collidingTest(asteroide.pos_y-0.1f, asteroide.pos_y+0.1f, spaceship_pos.y+1.0f, spaceship_pos.y-1.0f);
+
+    bool collision_z = collidingTest(asteroide.pos_z-0.1f, asteroide.pos_z+0.1f, spaceship_pos.z+0.25f, spaceship_pos.z);
+
+    return collision_x && collision_y && collision_z;
+}
+
 
