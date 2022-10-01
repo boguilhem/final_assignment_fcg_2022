@@ -20,6 +20,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <ctime>
 
 // Headers abaixo são específicos de C++
 #include <map>
@@ -49,8 +50,6 @@
 // Headers locais, definidos na pasta "include/"
 #include "utils.h"
 #include "matrices.h"
-
-#include "collisions.hpp"
 
 #define M_PI 3.14159265358979323846
 
@@ -127,9 +126,6 @@ void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void CursorPosCallback(GLFWwindow* window, double xpos, double ypos);
 void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
-glm::vec4 getBbox_min(ObjModel* model, glm::mat4 model_matrix);
-glm::vec4 getBbox_max(ObjModel* model, glm::mat4 model_matrix);
-
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
 struct SceneObject
@@ -141,6 +137,21 @@ struct SceneObject
     GLuint       vertex_array_object_id; // ID do VAO onde estão armazenados os atributos do modelo
     glm::vec3    bbox_min; // Axis-Aligned Bounding Box do objeto
     glm::vec3    bbox_max;
+};
+
+// Estrutura de asteroides (obstaculos)
+struct AsteroidObj
+{
+    float pos_x;
+    float pos_y;
+    float pos_z;
+
+    AsteroidObj()
+    {
+        pos_x = 0.0f;
+        pos_y = 0.0f;
+        pos_z = -40.0f;
+    }
 };
 
 // Abaixo definimos variáveis globais utilizadas em várias funções do código.
@@ -197,9 +208,11 @@ bool g_UsePerspectiveProjection = true;
 // Variável que controla se o texto informativo será mostrado na tela.
 bool g_ShowInfoText = true;
 
-// VARIAVEIS DE MOVIMENTAÇÃO SPACESHIP
-float spaceship_x_offset = 0.0f;
-float spaceship_y_offset = 0.0f;
+// VARS DE QUANTIDADE E MULTIPLICADOR DE VELOCIDADE DOS ASTEROIDES
+int asteroid_count = 1;
+float asteroid_speed_multiplier = 1.0f;
+bool game_start = false;
+bool game_restart = false;
 
 // Variáveis que definem um programa de GPU (shaders). Veja função LoadShadersFromFiles().
 GLuint vertex_shader_id;
@@ -292,8 +305,9 @@ int main(int argc, char* argv[])
     LoadTextureImage("../../data/spaceship/textures/DeathRow_Low_Cube001_[AlbedoM].png");     // TextureImage0
     LoadTextureImage("../../data/asteroid0/textures/LPP_1001_Roughness.png");                 // TextureImage1
     LoadTextureImage("../../data/spaceship/textures/DeathRow_Low_Cube001_[Metalness].png");   // TextureImage2
-    LoadTextureImage("../../data/spaceship/textures/DeathRow_Low_Cube001_[Normal].png");      // TextureImage3
-    LoadTextureImage("../../data/2k_mercury.jpg");                                            // TextureImage4
+    LoadTextureImage("../../data/Diffuse_2K.png");                                            // TextureImage3
+    LoadTextureImage("../../data/asteroid0/textures/LPP_1001_BaseColor.png");                 // TextureImage4
+    LoadTextureImage("../../data/asteroid1/textures/asteroid1.jpg");                          // TextureImage5
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel("../../data/sphere.obj");
@@ -337,13 +351,14 @@ int main(int argc, char* argv[])
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    //Valores usados para definir os limites do mapa
-    float limite_x = 10.0f;
-    float limite_y = 1.0f;
-
     // spaceship speed horizontal and vertical
     float speedX = 0;
     float speedY = 0;
+
+    // variaveis de auxilio
+    srand (static_cast <unsigned> (time(0)));
+    std::vector<AsteroidObj> asteroides;
+    AsteroidObj asteroide_hard;
 
     // collision checking
     bool colliding = false;
@@ -387,6 +402,7 @@ int main(int argc, char* argv[])
         float z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
         float x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
 
+        // Movimentação da nave
         float deltaPosX=0, deltaPosY=0, deltaPosZ=0;
 
         if(key_w_pressed){
@@ -429,7 +445,17 @@ int main(int argc, char* argv[])
         }
         deltaPosX = -speedX * deltaT;
 
-
+        if(!colliding)
+        {
+            pos_ship_x += deltaPosX;
+            pos_ship_y += deltaPosY;
+            pos_ship_z += deltaPosZ;
+        }
+        else
+        {
+            speedX = 0;
+            speedY = 0;
+        }
 
         // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
         // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
@@ -441,7 +467,7 @@ int main(int argc, char* argv[])
         if(!lookAt_camera)
         {
             camera_position_c  = glm::vec4(pos_ship_x,pos_ship_y,pos_ship_z,1.0f); // Ponto "c", centro da camera
-            camera_view_vector = glm::vec4(-x,-y+1.3f,-z,0.0f); // indica para onde a câmera está direcionada
+            camera_view_vector = glm::vec4(-x,-y,-z,0.0f); // indica para onde a câmera está direcionada
         }
 
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
@@ -460,8 +486,8 @@ int main(int argc, char* argv[])
 
         // Note que, no sistema de coordenadas da câmera, os planos near e far
         // estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.
-        float nearplane = -1.1f;  // Posição do "near plane"
-        float farplane  = -500.0f; // Posição do "far plane"
+        float nearplane = -1.0f;  // Posição do "near plane"
+        float farplane  = -60.0f; // Posição do "far plane"
 
         if (g_UsePerspectiveProjection)
         {
@@ -496,44 +522,67 @@ int main(int argc, char* argv[])
         #define PLANE  1
         #define COW  2
         #define SPACESHIP  3
-        //#define ASTEROID0  4
-        //#define ASTEROID1  5
+        #define ASTEROID0  4
+        #define ASTEROID1  5
 
-        /*
-        model = Matrix_Translate(-1.0f,0.0f,0.0f) * Matrix_Scale(0.5, 0.5, 0.5)
-              * Matrix_Rotate_Z(0.6f)
-              * Matrix_Rotate_X(0.2f)
-              * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
-        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, SPHERE);
-        DrawVirtualObject("sphere");*/
+        // apertar tecla 'I' para comecar a gerar obstaculos
+        if (game_start == true) {
+            // apertar 'R' para reiniciar o jogo
+            if (game_restart == true) {
+                asteroides.clear();
+                asteroid_count = 1;
+                asteroid_speed_multiplier = 1.0f;
+                AsteroidObj asteroid;
+                asteroid.pos_x = -2.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/10.0f));
+                asteroid.pos_y = 0.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/10.0f));
+                asteroid.pos_z = -40.0f;
+                asteroides.push_back(asteroid);
+                game_restart = false;
+            }
+            // confere se asteroides passaram da nave
+            if (asteroides.size() == 0 || asteroides[0].pos_z >= 5.0f) {
+                // novo round: add asteroide extra & aumenta velocidade
+                if (asteroid_count == 11) {
+                    asteroid_count = 1;
+                    asteroid_speed_multiplier += 0.25f;
+                }
+                // limite de velocidade
+                if (asteroid_speed_multiplier >= 10.0f) {
+                    asteroid_speed_multiplier = 10.0f;
+                };
 
-        // gerar instancias de asteroides em loop
-        for (int i = 1; i <= 25; ++i)
-        {
-            float float_i = static_cast<float>(i);
+                // gera novas posicoes iniciais
+                asteroides.clear();
+                for (int i = 0; i < asteroid_count; ++i) {
+                    AsteroidObj asteroid;
 
-            model = Matrix_Translate(-5.0f + 0.25f * (float)glfwGetTime(),0.0f,-2.5f * float_i)
-              * Matrix_Scale(0.3f, 0.3f, 0.3f)
-              * Matrix_Rotate_Z(0.6f)
-              * Matrix_Rotate_X(0.2f)
-              * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
+                    asteroid.pos_x = -2.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/10.0f));
+                    asteroid.pos_y = 0.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/10.0f));
+                    asteroid.pos_z = -40.0f;
 
-            // Desenhamos o modelo da esfera
-            glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-            glUniform1i(object_id_uniform, SPHERE);
-            DrawVirtualObject("sphere");
+                    asteroides.push_back(asteroid);
+                }
 
-            model = Matrix_Translate(5.0f - 0.25f * (float)glfwGetTime(),0.0f,-5.0f * float_i)
-              * Matrix_Scale(0.3f, 0.3f, 0.3f)
-              * Matrix_Rotate_Z(0.6f)
-              * Matrix_Rotate_X(0.2f)
-              * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
+                asteroid_count += 1;
+            }
 
-            // Desenhamos o modelo da esfera
-            glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-            glUniform1i(object_id_uniform, SPHERE);
-            DrawVirtualObject("sphere");
+            // gerar instancias de asteroides em loop
+            for (int i = 0; i < asteroid_count; ++i)
+            {
+                // asteroides normais
+                model = Matrix_Translate(asteroides[i].pos_x, asteroides[i].pos_y, asteroides[i].pos_z)
+                  * Matrix_Scale(0.75f, 0.75f, 0.75f)
+                  * Matrix_Rotate_Z(0.6f)
+                  * Matrix_Rotate_X(0.2f)
+                  * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.25f);
+
+                // movimentacao asteroides normais
+                asteroides[i].pos_z += 0.05f * asteroid_speed_multiplier;
+
+                glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+                glUniform1i(object_id_uniform, ASTEROID0);
+                DrawVirtualObject("asteroid0");
+            }
         }
 
         // Desenhamos o plano do chão
@@ -542,18 +591,7 @@ int main(int argc, char* argv[])
         glUniform1i(object_id_uniform, PLANE);
         DrawVirtualObject("plane");
 
-        //Desenhamos o modelo da vaca
-        //model = Matrix_Translate(1.0f,0.0f,0.0f)
-        //     * Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f);
-        //glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        //glUniform1i(object_id_uniform, COW);
-        //DrawVirtualObject("cow");
-
         // Desenhamos o modelo spaceship
-//        model = Matrix_Translate(0.0f + spaceship_x_offset,-0.5f + spaceship_y_offset,0.0f - 0.25f * (float)glfwGetTime()) * Matrix_Scale(0.1 * spaceship_resize, 0.1 * spaceship_resize, 0.1 * spaceship_resize) * Matrix_Rotate_Y(M_PI);
-//        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-//        glUniform1i(object_id_uniform, SPACESHIP);
-//        DrawVirtualObject("spaceship");
         model = Matrix_Translate(pos_ship_x,pos_ship_y,pos_ship_z)
             * Matrix_Scale(0.1 * spaceship_resize, 0.1 * spaceship_resize, 0.1 * spaceship_resize)
             * Matrix_Rotate_Y(M_PI)
@@ -561,47 +599,6 @@ int main(int argc, char* argv[])
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, SPACESHIP);
         DrawVirtualObject("spaceship");
-
-<<<<<<< Updated upstream
-//        // Desenhamos o modelo asteroid0
-//        model = Matrix_Translate(0.0f,-5.0f,1.0f) * Matrix_Scale(0.1, 0.1, 0.1);
-//        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-//        glUniform1i(object_id_uniform, ASTEROID0);
-//        DrawVirtualObject("asteroid0");
-//
-//        // Desenhamos o modelo asteroid1
-//        model = Matrix_Translate(0.0f,-5.0f,1.0f) * Matrix_Scale(10.0, 10.0, 10.0);
-//        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-//        glUniform1i(object_id_uniform, ASTEROID1);
-//        DrawVirtualObject("asteroid1");
-=======
-        glm::vec4 spaceship_bbox_min = getBbox_min(&spaceshipmodel, model);
-        glm::vec4 spaceship_bbox_max = getBbox_max(&spaceshipmodel, model);
-
-        // Testes de colisão com as bordas do mapa
-
-        colliding = false;
-
-        if(collidingTest(limite_x, spaceship_bbox_max.x, spaceship_bbox_min.x)) {
-            colliding = true;
-            speedX = 0;
-            pos_ship_x -= deltaPosX;
-        }
-
-        if(collidingTest(limite_y, spaceship_bbox_max.y, spaceship_bbox_min.y)) {
-            colliding = true;
-            speedY = 0;
-            pos_ship_y -= deltaPosY;
-        }
-
-
-        if(!colliding)
-        {
-            pos_ship_x += deltaPosX;
-            pos_ship_y += deltaPosY;
-            pos_ship_z += deltaPosZ;
-        }
->>>>>>> Stashed changes
 
         // Imprimimos na tela os ângulos de Euler que controlam a rotação do
         // terceiro cubo.
@@ -854,76 +851,6 @@ void ComputeNormals(ObjModel* model)
         model->attrib.normals[3*i + 1] = n.y;
         model->attrib.normals[3*i + 2] = n.z;
     }
-}
-
-// Utilizada para retornar a bbox min
-glm::vec4 getBbox_min(ObjModel* model, glm::mat4 transformations)
-{
-    glm::vec4 bbox_min;
-
-    size_t num_triangles = model->shapes[0].mesh.num_face_vertices.size();
-    bbox_min = glm::vec4(100.0, 100.0, 100.0, 1.0f);
-
-    for (size_t triangle = 0; triangle < num_triangles; ++triangle)
-    {
-        assert(model->shapes[0].mesh.num_face_vertices[triangle] == 3);
-
-        for (size_t vertex = 0; vertex < 3; ++vertex)
-        {
-            tinyobj::index_t idx = model->shapes[0].mesh.indices[3*triangle + vertex];
-
-            const float vx = model->attrib.vertices[3*idx.vertex_index + 0];
-            const float vy = model->attrib.vertices[3*idx.vertex_index + 1];
-            const float vz = model->attrib.vertices[3*idx.vertex_index + 2];
-
-            glm::vec4 vertice;
-            vertice.x = vx;
-            vertice.y = vy;
-            vertice.z = vz;
-            vertice.w = 1.0f;
-            vertice = transformations * vertice;
-
-            bbox_min.x = std::min(bbox_min.x, vertice.x);
-            bbox_min.y = std::min(bbox_min.y, vertice.y);
-            bbox_min.z = std::min(bbox_min.z, vertice.z);
-        }
-    }
-    return bbox_min;
-}
-
-// Utilizada para retornar a bbox max
-glm::vec4 getBbox_max(ObjModel* model, glm::mat4 transformations)
-{
-    glm::vec4 bbox_max;
-
-    size_t num_triangles = model->shapes[0].mesh.num_face_vertices.size();
-    bbox_max = glm::vec4(-100, -100, -100, 1.0f);
-
-    for (size_t triangle = 0; triangle < num_triangles; ++triangle)
-    {
-        assert(model->shapes[0].mesh.num_face_vertices[triangle] == 3);
-
-        for (size_t vertex = 0; vertex < 3; ++vertex)
-        {
-            tinyobj::index_t idx = model->shapes[0].mesh.indices[3*triangle + vertex];
-
-            const float vx = model->attrib.vertices[3*idx.vertex_index + 0];
-            const float vy = model->attrib.vertices[3*idx.vertex_index + 1];
-            const float vz = model->attrib.vertices[3*idx.vertex_index + 2];
-
-            glm::vec4 vertice;
-            vertice.x = vx;
-            vertice.y = vy;
-            vertice.z = vz;
-            vertice.w = 1.0f;
-            vertice = transformations * vertice;
-
-            bbox_max.x = std::max(bbox_max.x, vertice.x);
-            bbox_max.y = std::max(bbox_max.y, vertice.y);
-            bbox_max.z = std::max(bbox_max.z, vertice.z);
-        }
-    }
-    return bbox_max;
 }
 
 // Constrói triângulos para futura renderização a partir de um ObjModel.
@@ -1407,7 +1334,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         g_AngleX += delta;
     }
 
-    // Se o usuário apertar a tecla espaço, resetamos os ângulos de Euler para zero.
+    // Se o usuário apertar a tecla espaço, ativa/desativa encolhimento da nave
     if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
     {
         spaceship_resize = 0.5f;
@@ -1438,38 +1365,21 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     }
 
     // Se o usuário apertar a tecla R, recarregamos os shaders dos arquivos "shader_fragment.glsl" e "shader_vertex.glsl".
+    // tambem reinicia o jogo
     if (key == GLFW_KEY_R && action == GLFW_PRESS)
     {
+        game_restart = true;
+
         LoadShadersFromFiles();
-        fprintf(stdout,"Shaders recarregados!\n");
+        fprintf(stdout,"Jogo reiniciado + Shaders recarregados!\n");
         fflush(stdout);
     }
 
-//    // Se o usuário apertar a tecla UP
-//    if (key == GLFW_KEY_W && (action == GLFW_PRESS || action == GLFW_REPEAT))
-//    {
-//        spaceship_y_offset += 0.1f;
-//    }
-//
-//    // Se o usuário apertar a tecla DOWN
-//    if (key == GLFW_KEY_S && (action == GLFW_PRESS || action == GLFW_REPEAT))
-//    {
-//        spaceship_y_offset -= 0.1f;
-//    }
-//
-//    // Se o usuário apertar a tecla LEFT
-//    if (key == GLFW_KEY_A && (action == GLFW_PRESS || action == GLFW_REPEAT))
-//    {
-//        // desviar no eixo x
-//        spaceship_x_offset -= 0.1f;
-//    }
-//
-//    // Se o usuário apertar a tecla RIGHT
-//    if (key == GLFW_KEY_D && (action == GLFW_PRESS || action == GLFW_REPEAT))
-//    {
-//        // desviar no eixo x
-//        spaceship_x_offset += 0.1f;
-//    }
+    // Apertar a tecla I para iniciar jogo (obstaculos)
+    if (key == GLFW_KEY_I && action == GLFW_PRESS)
+    {
+        game_start = true;
+    }
 
     if(key == GLFW_KEY_W)
     {
@@ -1794,4 +1704,3 @@ void PrintObjModelInfo(ObjModel* model)
 
 // set makeprg=cd\ ..\ &&\ make\ run\ >/dev/null
 // vim: set spell spelllang=pt_br :
-
