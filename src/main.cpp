@@ -1468,6 +1468,9 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     if (key == GLFW_KEY_R && action == GLFW_PRESS)
     {
         game_restart = true;
+        pos_ship_x = 1.0f;
+        pos_ship_y = 0.0f;
+        pos_ship_z = 3.385f;
 
         LoadShadersFromFiles();
         fprintf(stdout,"Jogo reiniciado + Shaders recarregados!\n");
