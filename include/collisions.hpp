@@ -16,8 +16,8 @@ struct AsteroidObj
     AsteroidObj()
     {
         pos_x = 0.0f;
-        pos_y = 0.0f;
-        pos_z = -40.0f;
+        pos_y = -1.0f;
+        pos_z = -60.0f;
     }
 };
 
