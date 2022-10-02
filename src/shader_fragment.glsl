@@ -24,7 +24,6 @@ uniform mat4 projection;
 #define COW 2
 #define SPACESHIP 3
 #define ASTEROID0 4
-#define ASTEROID1 5
 uniform int object_id;
 
 // Parâmetros da axis-aligned bounding box (AABB) do modelo
@@ -37,7 +36,6 @@ uniform sampler2D TextureImage1;
 uniform sampler2D TextureImage2;
 uniform sampler2D TextureImage3;
 uniform sampler2D TextureImage4;
-uniform sampler2D TextureImage5;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
 out vec4 color;
@@ -197,14 +195,6 @@ void main()
         //Ks = vec3(0.0,0.0,0.0);
         //Ka = vec3(0.4,0.2,0.04);
         //q = 1.0;
-    }
-    else if ( object_id == ASTEROID1 )
-    {
-        U = texcoords.x;
-        V = texcoords.y;
-        Kd = texture(TextureImage5, vec2(U,V)).rgb; // NAO FUNCIONANDO TEXTURA 5
-        Ks = vec3(0.08,0.08,0.08); // Refletância especular
-        Ka = Kd/4; // Refletância ambiente
     }
 
     if(calculo_iluminacao)
