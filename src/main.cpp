@@ -116,6 +116,7 @@ void TextRendering_PrintMatrixVectorProductDivW(GLFWwindow* window, glm::mat4 M,
 void TextRendering_ShowModelViewProjection(GLFWwindow* window, glm::mat4 projection, glm::mat4 view, glm::mat4 model, glm::vec4 p_model);
 void TextRendering_ShowEulerAngles(GLFWwindow* window);
 void TextRendering_ShowGameInfo(GLFWwindow* window);
+void TextRendering_ShowGameOver(GLFWwindow* window);
 void TextRendering_ShowProjection(GLFWwindow* window);
 void TextRendering_ShowFramesPerSecond(GLFWwindow* window);
 
@@ -187,7 +188,7 @@ bool key_a_pressed = false;
 bool key_d_pressed = false;
 
 // Variável que controla o tipo de camera
-bool lookAt_camera = false;
+bool lookAt_camera = true;
 
 // Variável que controla encolhimento da nave
 float spaceship_resize = 1.0f;
@@ -205,6 +206,7 @@ int round_atual = 1;
 int vidas = 3;
 bool game_start = false;
 bool game_restart = false;
+bool game_over = false;
 
 // Variáveis que definem um programa de GPU (shaders). Veja função LoadShadersFromFiles().
 GLuint vertex_shader_id;
@@ -440,8 +442,9 @@ int main(int argc, char* argv[])
 
         // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
         // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
+
         glm::vec4 camera_position_c;
-        //glm::vec4 camera_lookat_l    = glm::vec4(0.0f,0.0f,0.0f,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
+        glm::vec4 camera_lookat_l    = glm::vec4(pos_ship_x,pos_ship_y,pos_ship_z,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
         glm::vec4 camera_view_vector;
         glm::vec4 camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 
@@ -449,6 +452,10 @@ int main(int argc, char* argv[])
         {
             camera_position_c  = glm::vec4(pos_ship_x,pos_ship_y,pos_ship_z,1.0f); // Ponto "c", centro da camera
             camera_view_vector = glm::vec4(-x,-y+1.3f,-z,0.0f); // indica para onde a câmera está direcionada
+        } else {
+            camera_position_c  = glm::vec4(x,y,z,1.0f); // Ponto "c", centro da camera
+            camera_position_c  = Matrix_Translate(camera_lookat_l.x,camera_lookat_l.y,camera_lookat_l.z) * camera_position_c;
+            camera_view_vector = camera_lookat_l - camera_position_c; // Vetor "view", sentido para onde a camera esta virada
         }
 
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
@@ -456,10 +463,14 @@ int main(int argc, char* argv[])
         glm::mat4 view;
         if(!lookAt_camera)
         {
-            glm::vec4 camera_3rd_person = camera_position_c - camera_view_vector; // Camera recuada para 3rd pessoa
-            camera_3rd_person.y += 2.0f;
-            glm::vec4 camera_view_ajustado = camera_view_vector + glm::vec4(0.0f, -2.0f, 0.0f, 0.0f);
-            view = Matrix_Camera_View(camera_3rd_person, camera_view_ajustado, camera_up_vector);
+            glm::vec4 camera_1rd_person = camera_position_c;
+            camera_1rd_person.y += 0.1f;
+            glm::vec4 camera_view_ajustado = camera_view_vector + glm::vec4(0.0f, -2.0f,-0.6f, 0.0f);
+            view = Matrix_Camera_View(camera_1rd_person, camera_view_ajustado, camera_up_vector);
+        } else {
+            camera_position_c.y += 1.0f;
+            glm::vec4 camera_view_ajustado = camera_view_vector + glm::vec4(0.0f, -1.0f, 0.0f, 0.0f);
+            view = Matrix_Camera_View(camera_position_c, camera_view_ajustado, camera_up_vector);
         }
 
         // Agora computamos a matriz de Projeção.
@@ -527,7 +538,9 @@ int main(int argc, char* argv[])
                 asteroides.clear();
                 asteroid_count = 0;
                 asteroid_speed_multiplier = 1.0f;
+                game_over = false;
                 game_restart = false;
+                colliding = false;
             }
             // confere se asteroides passaram da nave para concluir o round
             if (asteroides.size() == 0 || asteroides[0].pos_z >= 5.0f) {
@@ -592,6 +605,9 @@ int main(int argc, char* argv[])
                 // paraliza o jogo, e muda a camera se o usuario perdeu as 3 vidas
                 if (vidas == 0) {
                     game_start =  false;
+                    game_over = true;
+                    lookAt_camera = true;
+                    colliding = true;
                 }
                 // se ainda nao perdeu, reseta o jogo e posicao da nave
                 else {
@@ -661,17 +677,18 @@ int main(int argc, char* argv[])
         glUniform1i(object_id_uniform, PLANE);
         DrawVirtualObject("plane");
 
-        colliding = false;
+//        colliding = false;
         // se colide nos limites laterais
         if(collidingTest(limite_x, -limite_x, spaceship_bbox_max.x, spaceship_bbox_min.x)) {
             colliding = true;
             if(speedX < 0) {
-                speedY = 0;
+                speedX = 0;
                 pos_ship_x -= 0.05;
             } else if(speedX > 0) {
                 speedX = 0;
                 pos_ship_x += 0.05;
             }
+            colliding = false;
         }
         // se colide nos limites verticais
         else if(collidingTest(limite_y*20, -limite_y, spaceship_bbox_max.y, spaceship_bbox_min.y)) {
@@ -683,9 +700,10 @@ int main(int argc, char* argv[])
                 speedY = 0;
                 pos_ship_y += 0.05;
             }
+            colliding = false;
         }
 
-        if(!colliding)
+        if(colliding == false)
         {
             pos_ship_x += deltaPosX;
             pos_ship_y += deltaPosY;
@@ -694,6 +712,10 @@ int main(int argc, char* argv[])
 
         // Imprimimos na tela as informacoes do jogo
         TextRendering_ShowGameInfo(window);
+
+        if(game_over){
+            TextRendering_ShowGameOver(window);
+        }
 
         // Imprimimos na tela os ângulos de Euler que controlam a rotação do
         // terceiro cubo.
@@ -1529,6 +1551,11 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         g_ShowInfoText = !g_ShowInfoText;
     }
 
+    if (key == GLFW_KEY_V && action == GLFW_PRESS)
+    {
+        lookAt_camera = !lookAt_camera;
+    }
+
     // Se o usuário apertar a tecla R, recarregamos os shaders dos arquivos "shader_fragment.glsl" e "shader_vertex.glsl".
     // tambem reinicia o jogo
     if (key == GLFW_KEY_R && action == GLFW_PRESS)
@@ -1663,6 +1690,14 @@ void TextRendering_ShowGameInfo(GLFWwindow* window)
     snprintf(buffer, 80, "ROUND %d\n   |   VIDAS %d\n", round_atual, vidas);
 
     TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f+2*pad/10, 2.5f);
+}
+
+void TextRendering_ShowGameOver(GLFWwindow* window)
+{
+    float lineheight = TextRendering_LineHeight(window);
+    float charwidth = TextRendering_CharWidth(window);
+
+    TextRendering_PrintString(window, "GAME OVER", 1.0f-105*charwidth, -1.0f+25*lineheight, 10.0f);
 }
 
 // Escrevemos na tela qual matriz de projeção está sendo utilizada.
