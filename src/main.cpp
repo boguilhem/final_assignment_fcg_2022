@@ -1524,13 +1524,17 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     // Se o usuário apertar a tecla espaço, ativa/desativa encolhimento da nave
     if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
     {
-        spaceship_resize = 0.5f;
+        if(lookAt_camera){
+            spaceship_resize = 0.5f;
+        }
     }
 
     // Se o usuário apertar a tecla espaço, resetamos os ângulos de Euler para zero.
     if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE)
     {
-        spaceship_resize = 1.0f;
+        if(lookAt_camera){
+            spaceship_resize = 1.0f;
+        }
     }
 
     // Se o usuário apertar a tecla P, utilizamos projeção perspectiva.
@@ -1554,6 +1558,11 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     if (key == GLFW_KEY_V && action == GLFW_PRESS)
     {
         lookAt_camera = !lookAt_camera;
+        if(!lookAt_camera){
+            spaceship_resize = 0.5f;
+        } else {
+            spaceship_resize = 1.0f;
+        }
     }
 
     // Se o usuário apertar a tecla R, recarregamos os shaders dos arquivos "shader_fragment.glsl" e "shader_vertex.glsl".
