@@ -1,6 +1,6 @@
 # This file uses centimeters as units for non-parametric coordinates.
 #
-g asteroid0
+g asteroid
 v -0.454554 0.406304 1.137936
 v -0.335009 -0.331658 -0.966251
 v 0.502161 -1.074338 0.214623

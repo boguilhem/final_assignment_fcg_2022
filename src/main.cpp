@@ -292,31 +292,25 @@ int main(int argc, char* argv[])
 
     // Carregamos duas imagens para serem utilizadas como textura
     LoadTextureImage("../../data/spaceship/textures/DeathRow_Low_Cube001_[AlbedoM].png");     // TextureImage0
-    LoadTextureImage("../../data/asteroid0/textures/LPP_1001_Roughness.png");                 // TextureImage1
+    LoadTextureImage("../../data/asteroid/textures/LPP_1001_Roughness.png");                  // TextureImage1
     LoadTextureImage("../../data/spaceship/textures/DeathRow_Low_Cube001_[Metalness].png");   // TextureImage2
     LoadTextureImage("../../data/Diffuse_2K.png");                                            // TextureImage3
-    LoadTextureImage("../../data/asteroid0/textures/LPP_1001_BaseColor.png");                 // TextureImage4
+    LoadTextureImage("../../data/asteroid/textures/LPP_1001_BaseColor.png");                  // TextureImage4
+    LoadTextureImage("../../data/8k_stars.jpg");                                              // TextureImage5
+    LoadTextureImage("../../data/8k_stars_milky_way.jpg");                                    // TextureImage6
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
-    ObjModel spheremodel("../../data/sphere.obj");
-    ComputeNormals(&spheremodel);
-    BuildTrianglesAndAddToVirtualScene(&spheremodel);
-
     ObjModel planemodel("../../data/plane.obj");
     ComputeNormals(&planemodel);
     BuildTrianglesAndAddToVirtualScene(&planemodel);
-
-    ObjModel cowmodel("../../data/cow.obj");
-    ComputeNormals(&cowmodel);
-    BuildTrianglesAndAddToVirtualScene(&cowmodel);
 
     ObjModel spaceshipmodel("../../data/spaceship/source/spaceship.obj");
     ComputeNormals(&spaceshipmodel);
     BuildTrianglesAndAddToVirtualScene(&spaceshipmodel);
 
-    ObjModel asteroid0model("../../data/asteroid0/source/asteroid0.obj");
-    ComputeNormals(&asteroid0model);
-    BuildTrianglesAndAddToVirtualScene(&asteroid0model);
+    ObjModel asteroidmodel("../../data/asteroid/source/asteroid.obj");
+    ComputeNormals(&asteroidmodel);
+    BuildTrianglesAndAddToVirtualScene(&asteroidmodel);
 
     if ( argc > 1 )
     {
@@ -339,23 +333,25 @@ int main(int argc, char* argv[])
     float speedX = 0;
     float speedY = 0;
 
-    // variaveis de auxilio
+    // randomizacao posicao obstaculos
     srand (static_cast <unsigned> (time(0)));
+
+    // lista de asteroides/obstaculos
     std::vector<AsteroidObj> asteroides;
 
-    // collision checking
+    // variaveis de testes de colisao / limites do mapa
     bool colliding = false;
     float limite_x = 20.0f;
     float limite_y = 1.0f;
 
-    // Variaveis usadas para marcar o tempo
-    float t_prev = glfwGetTime(); // decorrido at� o frame anterior
-    float t_now = 0;              // decorrido at� o momento
+    // Marcar o tempo para velocidade da nave
+    float t_prev = glfwGetTime(); // decorrido ate o frame anterior
+    float t_now = 0;              // decorrido ate o momento
     float deltaT;                 // t_now - t_prev
 
-    // Marcar o tempo pra velocidade asteroides
-    float t_prev_a = glfwGetTime(); // decorrido at� o frame anterior
-    float t_now_a = 0;              // decorrido at� o momento
+    // Marcar o tempo para velocidade asteroides
+    float t_prev_a = glfwGetTime(); // decorrido ate o frame anterior
+    float t_now_a = 0;              // decorrido ate o momento
     float deltaT_a;                 // t_now - t_prev
 
     // Ficamos em loop, renderizando, até que o usuário feche a janela
@@ -437,7 +433,6 @@ int main(int argc, char* argv[])
 
         // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
         // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
-
         glm::vec4 camera_position_c;
         glm::vec4 camera_lookat_l    = glm::vec4(pos_ship_x,pos_ship_y,pos_ship_z,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
         glm::vec4 camera_view_vector;
@@ -509,7 +504,8 @@ int main(int argc, char* argv[])
         #define PLANE  1
         #define COW  2
         #define SPACESHIP  3
-        #define ASTEROID0  4
+        #define ASTEROID  4
+        #define PLANE_STARS  5
 
         // Desenhamos o modelo spaceship
         model = Matrix_Translate(pos_ship_x,pos_ship_y,pos_ship_z)
@@ -520,7 +516,7 @@ int main(int argc, char* argv[])
         glUniform1i(object_id_uniform, SPACESHIP);
         DrawVirtualObject("spaceship");
 
-        // Teste de colisão com as bordas do mapa
+        // Teste de colisao com as bordas do mapa
         glm::vec4 spaceship_bbox_min = getBbox_min(&spaceshipmodel, model);
         glm::vec4 spaceship_bbox_max = getBbox_max(&spaceshipmodel, model);
 
@@ -545,9 +541,9 @@ int main(int argc, char* argv[])
                 asteroid_count += 10;
 
                 // a cada 10 rounds: aumenta velocidade e reseta numero de asteroides
-                if (asteroid_count > 70) {
+                if (asteroid_count > 100) {
                     asteroid_count = 10;
-                    asteroid_speed_multiplier += 0.25f;
+                    asteroid_speed_multiplier += 0.2f;
                 }
 
                 // limite max de velocidade
@@ -569,35 +565,39 @@ int main(int argc, char* argv[])
             }
         }
 
+        // marca tempo para movimentacao dos asteroides
         t_now_a = glfwGetTime();
         deltaT_a = t_now_a - t_prev_a;
         t_prev_a = t_now_a;
+        // se o jogo estiver parado, nao movimenta asteroides
         if(game_start == false) {
             deltaT_a = 0.0f;
         }
+
         // gerar instancias de asteroides em loop
         for (int i = 0; i < asteroid_count; i++)
         {
-            // asteroides normais
+            // asteroides
             model = Matrix_Translate(asteroides[i].pos_x, asteroides[i].pos_y, asteroides[i].pos_z)
               * Matrix_Scale(1.0f, 1.0f, 1.0f)
               * Matrix_Rotate_Z(0.6f)
               * Matrix_Rotate_X(0.2f)
               * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 10.0f);
 
-            // movimentacao asteroides normais
-            asteroides[i].pos_z += 25.0f * deltaT_a * asteroid_speed_multiplier;
+            // movimentacao asteroides
+            asteroides[i].pos_z += 30.0f * deltaT_a * asteroid_speed_multiplier;
 
             glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-            glUniform1i(object_id_uniform, ASTEROID0);
-            DrawVirtualObject("asteroid0");
+            glUniform1i(object_id_uniform, ASTEROID);
+            DrawVirtualObject("asteroid");
         }
 
+        // testes de colisao com asteroides
         for (int i = 0; i < asteroid_count; i++){
             if(game_start && collisionSpaceshipAsteroid(camera_position_c, asteroides[i])){
                 vidas -= 1;
 
-                // paraliza o jogo, e muda a camera se o usuario perdeu as 3 vidas
+                // paraliza o jogo se o usuario perdeu as 3 vidas
                 if (vidas == 0) {
                     game_start =  false;
                     game_over = true;
@@ -605,7 +605,7 @@ int main(int argc, char* argv[])
                     colliding = true;
                     spaceship_resize = 1.0f;
                 }
-                // se ainda nao perdeu, reseta o jogo e posicao da nave
+                // se ainda nao perdeu, reduz uma vida e reseta posicao da nave
                 else {
                     asteroides.clear();
                     asteroid_count = 0;
@@ -620,40 +620,36 @@ int main(int argc, char* argv[])
         // Desenhamos o plano da parede da frente (espaço)
         model = Matrix_Translate(0.0f,0.0f,-60.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f)
                  * Matrix_Rotate_X(M_PI / 2);
-                 //* Matrix_Rotate_Z(g_AngleX);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, PLANE);
+        glUniform1i(object_id_uniform, PLANE_STARS);
         DrawVirtualObject("plane");
 
         // Desenhamos o plano da parede de tras (espaço)
         model = Matrix_Translate(0.0f,0.0f,60.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f)
                  * Matrix_Rotate_X(M_PI / 2);
-                 //* Matrix_Rotate_Z(g_AngleX);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, PLANE);
+        glUniform1i(object_id_uniform, PLANE_STARS);
         DrawVirtualObject("plane");
 
-        // Desenhamos o plano da 'parede' direita (textura de nuvem de asteroides?)
-        model = Matrix_Translate(20.0f,0.0f,0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f)
+        // Desenhamos o plano da 'parede' direita
+        model = Matrix_Translate(20.5f,0.0f,0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f)
                   * Matrix_Rotate_Z(M_PI / 2);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, PLANE);
+        glUniform1i(object_id_uniform, PLANE_STARS);
         DrawVirtualObject("plane");
 
-        // Desenhamos o plano da 'parede' da esquerda (textura de nuvem de asteroides?)
-        model = Matrix_Translate(-20.0f,0.0f,0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f)
+        // Desenhamos o plano da 'parede' da esquerda
+        model = Matrix_Translate(-20.5f,0.0f,0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f)
                   * Matrix_Rotate_Z(-M_PI / 2);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, PLANE);
+        glUniform1i(object_id_uniform, PLANE_STARS);
         DrawVirtualObject("plane");
 
-        // Desenhamos o plano do 'teto' (DESLOCAR PRA CIMA NO EIXO Y)
-        model = Matrix_Translate(0.0f, 21.0f, 0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f)
+        // Desenhamos o plano do 'teto'
+        model = Matrix_Translate(0.0f, 21.5f, 0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f)
                   * Matrix_Rotate_X(M_PI);
-                  //* Matrix_Rotate_Y(M_PI / 2);
-                  //* Matrix_Rotate_Z(g_AngleX);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, PLANE);
+        glUniform1i(object_id_uniform, PLANE_STARS);
         DrawVirtualObject("plane");
 
         // Desenhamos o plano do chão
@@ -701,6 +697,7 @@ int main(int argc, char* argv[])
         // Imprimimos na tela as informacoes do jogo
         TextRendering_ShowGameInfo(window);
 
+        // print game over
         if(game_over){
             TextRendering_ShowGameOver(window);
         }
@@ -865,6 +862,9 @@ void LoadShadersFromFiles()
     glUniform1i(glGetUniformLocation(program_id, "TextureImage1"), 1);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage2"), 2);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage3"), 3);
+    glUniform1i(glGetUniformLocation(program_id, "TextureImage4"), 4);
+    glUniform1i(glGetUniformLocation(program_id, "TextureImage5"), 5);
+    glUniform1i(glGetUniformLocation(program_id, "TextureImage6"), 6);
     glUseProgram(0);
 }
 
