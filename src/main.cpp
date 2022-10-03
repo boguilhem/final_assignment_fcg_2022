@@ -1683,7 +1683,7 @@ void TextRendering_ShowGameInfo(GLFWwindow* window)
     float pad = TextRendering_LineHeight(window);
 
     char buffer[80];
-    snprintf(buffer, 80, "ROUND %d\n   |   VIDAS %d\n", round_atual, vidas);
+    snprintf(buffer, 80, "ROUND: %d\n   |   VIDAS: %d\n", round_atual, vidas);
 
     TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f+2*pad/10, 2.5f);
 }
