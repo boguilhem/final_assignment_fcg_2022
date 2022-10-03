@@ -297,31 +297,26 @@ int main(int argc, char* argv[])
 
     // Carregamos duas imagens para serem utilizadas como textura
     LoadTextureImage("../../data/spaceship/textures/DeathRow_Low_Cube001_[AlbedoM].png");     // TextureImage0
-    LoadTextureImage("../../data/asteroid0/textures/LPP_1001_Roughness.png");                 // TextureImage1
+    LoadTextureImage("../../data/asteroid/textures/LPP_1001_Roughness.png");                 // TextureImage1
     LoadTextureImage("../../data/spaceship/textures/DeathRow_Low_Cube001_[Metalness].png");   // TextureImage2
     LoadTextureImage("../../data/Diffuse_2K.png");                                            // TextureImage3
-    LoadTextureImage("../../data/asteroid0/textures/LPP_1001_BaseColor.png");                 // TextureImage4
+    LoadTextureImage("../../data/asteroid/textures/LPP_1001_BaseColor.png");                 // TextureImage4
+    LoadTextureImage("../../data/starry-night-sky.jpg");                                      // TextureImage5
+    LoadTextureImage("../../data/2k_stars.jpg");                                              // TextureImage6
+    LoadTextureImage("../../data/8k_stars_milky_way.jpg");                                    // TextureImage7
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
-    ObjModel spheremodel("../../data/sphere.obj");
-    ComputeNormals(&spheremodel);
-    BuildTrianglesAndAddToVirtualScene(&spheremodel);
-
     ObjModel planemodel("../../data/plane.obj");
     ComputeNormals(&planemodel);
     BuildTrianglesAndAddToVirtualScene(&planemodel);
-
-    ObjModel cowmodel("../../data/cow.obj");
-    ComputeNormals(&cowmodel);
-    BuildTrianglesAndAddToVirtualScene(&cowmodel);
 
     ObjModel spaceshipmodel("../../data/spaceship/source/spaceship.obj");
     ComputeNormals(&spaceshipmodel);
     BuildTrianglesAndAddToVirtualScene(&spaceshipmodel);
 
-    ObjModel asteroid0model("../../data/asteroid0/source/asteroid0.obj");
-    ComputeNormals(&asteroid0model);
-    BuildTrianglesAndAddToVirtualScene(&asteroid0model);
+    ObjModel asteroidmodel("../../data/asteroid/source/asteroid.obj");
+    ComputeNormals(&asteroidmodel);
+    BuildTrianglesAndAddToVirtualScene(&asteroidmodel);
 
     if ( argc > 1 )
     {
@@ -512,9 +507,9 @@ int main(int argc, char* argv[])
 
         #define SPHERE 0
         #define PLANE  1
-        #define COW  2
         #define SPACESHIP  3
-        #define ASTEROID0  4
+        #define ASTEROID  4
+        #define PLANE_STARS  5
 
         // Desenhamos o modelo spaceship
         model = Matrix_Translate(pos_ship_x,pos_ship_y,pos_ship_z)
@@ -594,8 +589,8 @@ int main(int argc, char* argv[])
             asteroides[i].pos_z += 25.0f * deltaT_a * asteroid_speed_multiplier;
 
             glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-            glUniform1i(object_id_uniform, ASTEROID0);
-            DrawVirtualObject("asteroid0");
+            glUniform1i(object_id_uniform, ASTEROID);
+            DrawVirtualObject("asteroid");
         }
 
         for (int i = 0; i < asteroid_count; i++){
@@ -617,27 +612,17 @@ int main(int argc, char* argv[])
                     pos_ship_x = 0.0f;
                     pos_ship_y = 10.0f;
                     pos_ship_z = 0.0f;
+                    g_CameraTheta = 0.0f;
+                    g_CameraPhi = 0.0f;
                 }
-
-                //asteroides.clear();
-                //asteroid_count = 0;
-                //asteroid_speed_multiplier = 1.0f;
-                //colliding = true;
-                //LoadShadersFromFiles();
-                //fprintf(stdout,"Jogo reiniciado + Shaders recarregados!\n");
-                //fflush(stdout);
-                //pos_ship_x = 0.0f;
-                //pos_ship_y = 10.0f;
-                //pos_ship_z = 0.0f;
             }
         }
 
         // Desenhamos o plano da parede da frente (espaço)
         model = Matrix_Translate(0.0f,0.0f,-60.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f)
                  * Matrix_Rotate_X(M_PI / 2);
-                 //* Matrix_Rotate_Z(g_AngleX);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, PLANE);
+        glUniform1i(object_id_uniform, PLANE_STARS);
         DrawVirtualObject("plane");
 
         // Desenhamos o plano da parede de tras (espaço)
@@ -645,30 +630,28 @@ int main(int argc, char* argv[])
                  * Matrix_Rotate_X(M_PI / 2);
                  //* Matrix_Rotate_Z(g_AngleX);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, PLANE);
+        glUniform1i(object_id_uniform, PLANE_STARS);
         DrawVirtualObject("plane");
 
         // Desenhamos o plano da 'parede' direita (textura de nuvem de asteroides?)
         model = Matrix_Translate(20.0f,0.0f,0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f)
                   * Matrix_Rotate_Z(M_PI / 2);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, PLANE);
+        glUniform1i(object_id_uniform, PLANE_STARS);
         DrawVirtualObject("plane");
 
         // Desenhamos o plano da 'parede' da esquerda (textura de nuvem de asteroides?)
         model = Matrix_Translate(-20.0f,0.0f,0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f)
                   * Matrix_Rotate_Z(-M_PI / 2);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, PLANE);
+        glUniform1i(object_id_uniform, PLANE_STARS);
         DrawVirtualObject("plane");
 
         // Desenhamos o plano do 'teto' (DESLOCAR PRA CIMA NO EIXO Y)
         model = Matrix_Translate(0.0f, 21.0f, 0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f)
                   * Matrix_Rotate_X(M_PI);
-                  //* Matrix_Rotate_Y(M_PI / 2);
-                  //* Matrix_Rotate_Z(g_AngleX);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, PLANE);
+        glUniform1i(object_id_uniform, PLANE_STARS);
         DrawVirtualObject("plane");
 
         // Desenhamos o plano do chão
@@ -677,7 +660,7 @@ int main(int argc, char* argv[])
         glUniform1i(object_id_uniform, PLANE);
         DrawVirtualObject("plane");
 
-//        colliding = false;
+        // colliding = false;
         // se colide nos limites laterais
         if(collidingTest(limite_x, -limite_x, spaceship_bbox_max.x, spaceship_bbox_min.x)) {
             colliding = true;
@@ -884,6 +867,10 @@ void LoadShadersFromFiles()
     glUniform1i(glGetUniformLocation(program_id, "TextureImage1"), 1);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage2"), 2);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage3"), 3);
+    glUniform1i(glGetUniformLocation(program_id, "TextureImage4"), 4);
+    glUniform1i(glGetUniformLocation(program_id, "TextureImage5"), 5);
+    glUniform1i(glGetUniformLocation(program_id, "TextureImage6"), 6);
+    glUniform1i(glGetUniformLocation(program_id, "TextureImage7"), 7);
     glUseProgram(0);
 }
 
@@ -1524,13 +1511,17 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     // Se o usuário apertar a tecla espaço, ativa/desativa encolhimento da nave
     if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
     {
-        spaceship_resize = 0.5f;
+        if(lookAt_camera){
+            spaceship_resize = 0.5f;
+        }
     }
 
     // Se o usuário apertar a tecla espaço, resetamos os ângulos de Euler para zero.
     if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE)
     {
-        spaceship_resize = 1.0f;
+        if(lookAt_camera){
+            spaceship_resize = 1.0f;
+        }
     }
 
     // Se o usuário apertar a tecla P, utilizamos projeção perspectiva.
@@ -1554,6 +1545,11 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     if (key == GLFW_KEY_V && action == GLFW_PRESS)
     {
         lookAt_camera = !lookAt_camera;
+        if(!lookAt_camera){
+            spaceship_resize = 0.5f;
+        } else {
+            spaceship_resize = 1.0f;
+        }
     }
 
     // Se o usuário apertar a tecla R, recarregamos os shaders dos arquivos "shader_fragment.glsl" e "shader_vertex.glsl".

@@ -19,11 +19,10 @@ uniform mat4 view;
 uniform mat4 projection;
 
 // Identificador que define qual objeto está sendo desenhado no momento
-#define SPHERE 0
 #define PLANE  1
-#define COW 2
 #define SPACESHIP 3
-#define ASTEROID0 4
+#define ASTEROID 4
+#define PLANE_STARS 5
 uniform int object_id;
 
 // Parâmetros da axis-aligned bounding box (AABB) do modelo
@@ -36,6 +35,9 @@ uniform sampler2D TextureImage1;
 uniform sampler2D TextureImage2;
 uniform sampler2D TextureImage3;
 uniform sampler2D TextureImage4;
+uniform sampler2D TextureImage5;
+uniform sampler2D TextureImage6;
+uniform sampler2D TextureImage7;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
 out vec4 color;
@@ -91,34 +93,13 @@ void main()
 
     bool calculo_iluminacao = true;
 
-    if ( object_id == SPHERE )
+    if ( object_id == PLANE_STARS )
     {
-        // PREENCHA AQUI as coordenadas de textura da esfera, computadas com
-        // projeção esférica EM COORDENADAS DO MODELO. Utilize como referência
-        // o slides 134-150 do documento Aula_20_Mapeamento_de_Texturas.pdf.
-        // A esfera que define a projeção deve estar centrada na posição
-        // "bbox_center" definida abaixo.
+        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
+        U = texcoords.x;
+        V = texcoords.y;
 
-        // Você deve utilizar:
-        //   função 'length( )' : comprimento Euclidiano de um vetor
-        //   função 'atan( , )' : arcotangente. Veja https://en.wikipedia.org/wiki/Atan2.
-        //   função 'asin( )'   : seno inverso.
-        //   constante M_PI
-        //   variável position_model
-        vec4 bbox_center = (bbox_min + bbox_max) / 2.0;
-
-        vec4 plinha = bbox_center + (position_model - bbox_center) / length(position_model - bbox_center);
-        vec4 pvector = plinha - bbox_center;
-
-        float theta = atan(pvector.x, pvector.z);
-        float phi = asin(pvector.y);
-
-        U = (theta + M_PI)/(2*M_PI);
-        V = (phi + M_PI_2)/M_PI;
-        Kd = texture(TextureImage1, vec2(U,V)).rgb;
-        Ks = vec3(0.0,0.0,0.0);
-        Ka = vec3(0.4,0.2,0.04);
-        q = 1.0;
+        Kd = texture(TextureImage7, vec2(U,V)).rgb;
     }
     else if ( object_id == PLANE )
     {
@@ -128,42 +109,8 @@ void main()
 
         Kd = texture(TextureImage3, vec2(U,V)).rgb;
     }
-    else if ( object_id == COW )
-    {
-        // PREENCHA AQUI as coordenadas de textura do coelho, computadas com
-        // projeção planar XY em COORDENADAS DO MODELO. Utilize como referência
-        // o slides 99-104 do documento Aula_20_Mapeamento_de_Texturas.pdf,
-        // e também use as variáveis min*/max* definidas abaixo para normalizar
-        // as coordenadas de textura U e V dentro do intervalo [0,1]. Para
-        // tanto, veja por exemplo o mapeamento da variável 'p_v' utilizando
-        // 'h' no slides 158-160 do documento Aula_20_Mapeamento_de_Texturas.pdf.
-        // Veja também a Questão 4 do Questionário 4 no Moodle.
-
-        float minx = bbox_min.x;
-        float maxx = bbox_max.x;
-
-        float miny = bbox_min.y;
-        float maxy = bbox_max.y;
-
-        float minz = bbox_min.z;
-        float maxz = bbox_max.z;
-
-        U = (position_model.x - minx) / (maxx - minx);
-        V = (position_model.y - miny) / (maxy - miny);
-    }
     else if ( object_id == SPACESHIP )
     {
-        /*float minx = bbox_min.x;
-        float maxx = bbox_max.x;
-
-        float miny = bbox_min.y;
-        float maxy = bbox_max.y;
-
-        float minz = bbox_min.z;
-        float maxz = bbox_max.z;
-
-        U = (position_model.x - minx) / (maxx - minx);
-        V = (position_model.y - miny) / (maxy - miny);*/
         U = texcoords.x;
         V = texcoords.y;
         Kd = texture(TextureImage0, vec2(U,V)).rgb;
@@ -173,28 +120,13 @@ void main()
         // Expoente especular para o modelo de iluminação de Phong
         q = 1.0;
     }
-    else if ( object_id == ASTEROID0 )
+    else if ( object_id == ASTEROID )
     {
         U = texcoords.x;
         V = texcoords.y;
         Kd = texture(TextureImage1, vec2(U,V)).rgb; // NAO FUNCIONANDO TEXTURA 4S
         Ks = vec3(0.08,0.08,0.08); // Refletância especular
         Ka = Kd/4; // Refletância ambiente
-
-        //vec4 bbox_center = (bbox_min + bbox_max) / 2.0;
-
-        //vec4 plinha = bbox_center + (position_model - bbox_center) / length(position_model - bbox_center);
-        //vec4 pvector = plinha - bbox_center;
-
-        //float theta = atan(pvector.x, pvector.z);
-        //float phi = asin(pvector.y);
-
-        //U = (theta + M_PI)/(2*M_PI);
-        //V = (phi + M_PI_2)/M_PI;
-        //Kd = texture(TextureImage1, vec2(U,V)).rgb;
-        //Ks = vec3(0.0,0.0,0.0);
-        //Ka = vec3(0.4,0.2,0.04);
-        //q = 1.0;
     }
 
     if(calculo_iluminacao)
