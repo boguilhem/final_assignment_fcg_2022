@@ -667,10 +667,10 @@ int main(int argc, char* argv[])
             colliding = true;
             if(speedX < 0) {
                 speedX = 0;
-                pos_ship_x -= 0.05;
+                pos_ship_x -= 0.1;
             } else if(speedX > 0) {
                 speedX = 0;
-                pos_ship_x += 0.05;
+                pos_ship_x += 0.1;
             }
             colliding = false;
         }
@@ -679,10 +679,10 @@ int main(int argc, char* argv[])
             colliding = true;
             if(speedY < 0) {
                 speedY = 0;
-                pos_ship_y -= 0.05;
+                pos_ship_y -= 0.1;
             } else if(speedY > 0) {
                 speedY = 0;
-                pos_ship_y += 0.05;
+                pos_ship_y += 0.1;
             }
             colliding = false;
         }
