@@ -665,24 +665,28 @@ int main(int argc, char* argv[])
         // se colide nos limites laterais
         if(collidingTest(limite_x, -limite_x, spaceship_bbox_max.x, spaceship_bbox_min.x)) {
             colliding = true;
-            if(speedX < 0) {
+            if(pos_ship_x >= 18.20){
                 speedX = 0;
-                pos_ship_x -= 0.1;
-            } else if(speedX > 0) {
+                pos_ship_x = 18.20;
+                pos_ship_x -= 0.01;
+            } else if(pos_ship_x <= -18.20) {
                 speedX = 0;
-                pos_ship_x += 0.1;
+                pos_ship_x = -18.20;
+                pos_ship_x += 0.01;
             }
             colliding = false;
         }
         // se colide nos limites verticais
         else if(collidingTest(limite_y*20, -limite_y, spaceship_bbox_max.y, spaceship_bbox_min.y)) {
             colliding = true;
-            if(speedY < 0) {
+            if(pos_ship_y >= 19.48) {
                 speedY = 0;
-                pos_ship_y -= 0.1;
-            } else if(speedY > 0) {
+                pos_ship_y = 19.48;
+                pos_ship_y -= 0.01;
+            } else if(pos_ship_y <= -0.75) {
                 speedY = 0;
-                pos_ship_y += 0.1;
+                pos_ship_y = -0.75;
+                pos_ship_y += 0.01;
             }
             colliding = false;
         }
