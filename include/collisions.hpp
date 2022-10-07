@@ -12,12 +12,14 @@ struct AsteroidObj
     float pos_x;
     float pos_y;
     float pos_z;
+    float rotation_speed;
 
     AsteroidObj()
     {
         pos_x = 0.0f;
         pos_y = -1.0f;
         pos_z = -60.0f;
+        rotation_speed = 1.0f;
     }
 };
 
