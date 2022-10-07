@@ -107,6 +107,26 @@ void main()
         color.rgb = Kd;
         calculo_iluminacao = false;
     }
+    else if (object_id == /* INSERIR NOVO OBJETO AQUI PARA GOURAUD */) {
+//        U = texcoords.x;
+//        V = texcoords.y;
+//        lambert = max(0, dot(n, l));
+//
+//        Kd = vec3(0.1,0.1,0.08); // Refletância difusa
+//        Ka = Kd/4; // Refletância ambiente
+//        vec3 Ia = vec3(0.2,0.2,0.2); // espectro da luz ambiente
+//
+//        vec3 ambient_term = Ka*Ia; // o termo ambiente
+//        vec3 lambert_diffuse_term = Kd * I * lambert; // termo difuso de Lambert
+//        color_gouraud = lambert_diffuse_term + ambient_term;
+//        color_gouraud = pow(color_gouraud, vec3(2,2,2));
+//
+//        calculo_iluminacao = false;
+//
+//        Kd = texture(TextureImage3, vec2(U,V)).rgb;
+//        color.rgb = color_gouraud * Kd;
+
+    }
     else if ( object_id == PLANE_STARS )
     {
         // Coordenadas de textura do plano, obtidas do arquivo OBJ.
@@ -122,25 +142,6 @@ void main()
     }
     else if ( object_id == SPACESHIP )
     {
-//        U = texcoords.x;
-//        V = texcoords.y;
-//        lambert = max(0, dot(n, l));
-//
-//        Kd = vec3(0.1,0.1,0.08); // Refletância difusa
-//        Ka = Kd/4; // Refletância ambiente
-//        vec3 Ia = vec3(0.2,0.2,0.2); // PREENCHA AQUI o espectro da luz ambiente
-//
-//        vec3 ambient_term = Ka*Ia; // o termo ambiente
-//        vec3 lambert_diffuse_term = Kd * I * lambert; // PREENCHA AQUI o termo difuso de Lambert
-//        color_gouraud = lambert_diffuse_term + ambient_term;
-//        color_gouraud = pow(color_gouraud, vec3(2,2,2));
-//
-//
-//        calculo_iluminacao = false;
-//
-//        Kd = texture(TextureImage3, vec2(U,V)).rgb;
-//        color.rgb = color_gouraud * Kd;
-
 
         U = texcoords.x;
         V = texcoords.y;
