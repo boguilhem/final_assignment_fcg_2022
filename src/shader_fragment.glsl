@@ -13,6 +13,7 @@ in vec4 position_model;
 // Coordenadas de textura obtidas do arquivo OBJ (se existirem!)
 in vec2 texcoords;
 
+
 // Matrizes computadas no código C++ e enviadas para a GPU
 uniform mat4 model;
 uniform mat4 view;
@@ -52,6 +53,7 @@ void main()
     // sistema de coordenadas da câmera.
     vec4 origin = vec4(0.0, 0.0, 0.0, 1.0);
     vec4 camera_position = inverse(view) * origin;
+    vec3 color_gouraud;
 
     // O fragmento atual é coberto por um ponto que percente à superfície de um
     // dos objetos virtuais da cena. Este ponto, p, possui uma posição no
@@ -65,7 +67,7 @@ void main()
     vec4 n = normalize(normal);
 
     // Vetor que define o sentido da fonte de luz em relação ao ponto atual.
-    vec4 l = normalize(vec4(1.0,1.0,0.0,1.0) - p);
+    vec4 l = normalize(vec4(1.0,20.0,-2.0,1.0) - p);
 
     // Vetor que define o sentido da câmera em relação ao ponto atual.
     vec4 v = normalize(camera_position - p);
@@ -98,35 +100,65 @@ void main()
         // Coordenadas de textura do plano, obtidas do arquivo OBJ.
         U = texcoords.x;
         V = texcoords.y;
+        q = 50;
 
         Kd = texture(TextureImage3, vec2(U,V)).rgb;
+        Kd = Kd/6;
+        color.rgb = Kd;
+        calculo_iluminacao = false;
     }
     else if ( object_id == PLANE_STARS )
     {
         // Coordenadas de textura do plano, obtidas do arquivo OBJ.
         U = texcoords.x;
         V = texcoords.y;
+        q = 60;
+
 
         Kd = texture(TextureImage5, vec2(U,V)).rgb;
+        Kd = Kd/2;
+        color.rgb = Kd;
+        calculo_iluminacao = false;
     }
     else if ( object_id == SPACESHIP )
     {
+//        U = texcoords.x;
+//        V = texcoords.y;
+//        lambert = max(0, dot(n, l));
+//
+//        Kd = vec3(0.1,0.1,0.08); // Refletância difusa
+//        Ka = Kd/4; // Refletância ambiente
+//        vec3 Ia = vec3(0.2,0.2,0.2); // PREENCHA AQUI o espectro da luz ambiente
+//
+//        vec3 ambient_term = Ka*Ia; // o termo ambiente
+//        vec3 lambert_diffuse_term = Kd * I * lambert; // PREENCHA AQUI o termo difuso de Lambert
+//        color_gouraud = lambert_diffuse_term + ambient_term;
+//        color_gouraud = pow(color_gouraud, vec3(2,2,2));
+//
+//
+//        calculo_iluminacao = false;
+//
+//        Kd = texture(TextureImage3, vec2(U,V)).rgb;
+//        color.rgb = color_gouraud * Kd;
+
+
         U = texcoords.x;
         V = texcoords.y;
         Kd = texture(TextureImage0, vec2(U,V)).rgb;
-        Ks = vec3(0.08,0.08,0.08); // Refletância especular
+        Ks = vec3(0.1,0.1,0.1); // Refletância especular
         Ka = Kd/4; // Refletância ambiente
 
         // Expoente especular para o modelo de iluminação de Phong
-        q = 1.0;
+        q = 5.0;
     }
     else if ( object_id == ASTEROID )
     {
         U = texcoords.x;
         V = texcoords.y;
         Kd = texture(TextureImage1, vec2(U,V)).rgb; // NAO FUNCIONANDO TEXTURA 4S
-        Ks = vec3(0.08,0.08,0.08); // Refletância especular
+        Ks = vec3(0.1,0.1,0.1); // Refletância especular
         Ka = Kd/4; // Refletância ambiente
+        q = 2.0;
     }
 
     if(calculo_iluminacao)
