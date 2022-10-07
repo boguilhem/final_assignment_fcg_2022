@@ -7,7 +7,7 @@
 //
 //          TRABALHO FINAL - STARFOX DODGE GAME
 //          Jose Cesar Chagastelles Pinto - 242536
-//          Bruno Guilhem -
+//          Bruno Oliveira Guilhem - 308691
 //
 
 // Arquivos "headers" padrões de C podem ser incluídos em um
@@ -113,11 +113,8 @@ void TextRendering_PrintMatrixVectorProductDivW(GLFWwindow* window, glm::mat4 M,
 
 // Funções abaixo renderizam como texto na janela OpenGL algumas matrizes e
 // outras informações do programa. Definidas após main().
-void TextRendering_ShowModelViewProjection(GLFWwindow* window, glm::mat4 projection, glm::mat4 view, glm::mat4 model, glm::vec4 p_model);
-void TextRendering_ShowEulerAngles(GLFWwindow* window);
 void TextRendering_ShowGameInfo(GLFWwindow* window);
 void TextRendering_ShowGameOver(GLFWwindow* window);
-void TextRendering_ShowProjection(GLFWwindow* window);
 void TextRendering_ShowFramesPerSecond(GLFWwindow* window);
 
 // Funções callback para comunicação com o sistema operacional e interação do
@@ -167,8 +164,6 @@ float g_AngleZ = 0.0f;
 // "g_LeftMouseButtonPressed = true" se o usuário está com o botão esquerdo do mouse
 // pressionado no momento atual. Veja função MouseButtonCallback().
 bool g_LeftMouseButtonPressed = false;
-bool g_RightMouseButtonPressed = false; // Análogo para botão direito do mouse
-bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mouse
 
 // Variáveis que definem a câmera em coordenadas esféricas, controladas pelo
 // usuário através do mouse (veja função CursorPosCallback()). A posição
@@ -339,23 +334,25 @@ int main(int argc, char* argv[])
     float speedX = 0;
     float speedY = 0;
 
-    // variaveis de auxilio
+    // randomizacao posicao obstaculos
     srand (static_cast <unsigned> (time(0)));
+
+    // lista de asteroides/obstaculos
     std::vector<AsteroidObj> asteroides;
 
-    // collision checking
+    // variaveis de testes de colisao / limites do mapa
     bool colliding = false;
     float limite_x = 20.0f;
     float limite_y = 1.0f;
 
-    // Variaveis usadas para marcar o tempo
-    float t_prev = glfwGetTime(); // decorrido at� o frame anterior
-    float t_now = 0;              // decorrido at� o momento
+    // Marcar o tempo para velocidade da nave
+    float t_prev = glfwGetTime(); // decorrido ate o frame anterior
+    float t_now = 0;              // decorrido ate o momento
     float deltaT;                 // t_now - t_prev
 
-    // Marcar o tempo pra velocidade asteroides
-    float t_prev_a = glfwGetTime(); // decorrido at� o frame anterior
-    float t_now_a = 0;              // decorrido at� o momento
+    // Marcar o tempo para velocidade asteroides
+    float t_prev_a = glfwGetTime(); // decorrido ate o frame anterior
+    float t_now_a = 0;              // decorrido ate o momento
     float deltaT_a;                 // t_now - t_prev
 
     // Ficamos em loop, renderizando, até que o usuário feche a janela
@@ -437,7 +434,6 @@ int main(int argc, char* argv[])
 
         // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
         // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
-
         glm::vec4 camera_position_c;
         glm::vec4 camera_lookat_l    = glm::vec4(pos_ship_x,pos_ship_y,pos_ship_z,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
         glm::vec4 camera_view_vector;
@@ -520,7 +516,7 @@ int main(int argc, char* argv[])
         glUniform1i(object_id_uniform, SPACESHIP);
         DrawVirtualObject("spaceship");
 
-        // Teste de colisão com as bordas do mapa
+        // Teste de colisao com as bordas do mapa
         glm::vec4 spaceship_bbox_min = getBbox_min(&spaceshipmodel, model);
         glm::vec4 spaceship_bbox_max = getBbox_max(&spaceshipmodel, model);
 
@@ -545,9 +541,9 @@ int main(int argc, char* argv[])
                 asteroid_count += 10;
 
                 // a cada 10 rounds: aumenta velocidade e reseta numero de asteroides
-                if (asteroid_count > 70) {
+                if (asteroid_count > 100) {
                     asteroid_count = 10;
-                    asteroid_speed_multiplier += 0.25f;
+                    asteroid_speed_multiplier += 0.2f;
                 }
 
                 // limite max de velocidade
@@ -569,42 +565,47 @@ int main(int argc, char* argv[])
             }
         }
 
+        // marca tempo para movimentacao dos asteroides
         t_now_a = glfwGetTime();
         deltaT_a = t_now_a - t_prev_a;
         t_prev_a = t_now_a;
+        // se o jogo estiver parado, nao movimenta asteroides
         if(game_start == false) {
             deltaT_a = 0.0f;
         }
+
         // gerar instancias de asteroides em loop
         for (int i = 0; i < asteroid_count; i++)
         {
-            // asteroides normais
+            // asteroides
             model = Matrix_Translate(asteroides[i].pos_x, asteroides[i].pos_y, asteroides[i].pos_z)
               * Matrix_Scale(1.0f, 1.0f, 1.0f)
               * Matrix_Rotate_Z(0.6f)
               * Matrix_Rotate_X(0.2f)
               * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 10.0f);
 
-            // movimentacao asteroides normais
-            asteroides[i].pos_z += 25.0f * deltaT_a * asteroid_speed_multiplier;
+            // movimentacao asteroides
+            asteroides[i].pos_z += 30.0f * deltaT_a * asteroid_speed_multiplier;
 
             glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
             glUniform1i(object_id_uniform, ASTEROID);
             DrawVirtualObject("asteroid");
         }
 
+        // testes de colisao com asteroides
         for (int i = 0; i < asteroid_count; i++){
             if(game_start && collisionSpaceshipAsteroid(camera_position_c, asteroides[i])){
                 vidas -= 1;
 
-                // paraliza o jogo, e muda a camera se o usuario perdeu as 3 vidas
+                // paraliza o jogo se o usuario perdeu as 3 vidas
                 if (vidas == 0) {
                     game_start =  false;
                     game_over = true;
                     lookAt_camera = true;
                     colliding = true;
+                    spaceship_resize = 1.0f;
                 }
-                // se ainda nao perdeu, reseta o jogo e posicao da nave
+                // se ainda nao perdeu, reduz uma vida e reseta posicao da nave
                 else {
                     asteroides.clear();
                     asteroid_count = 0;
@@ -628,27 +629,26 @@ int main(int argc, char* argv[])
         // Desenhamos o plano da parede de tras (espaço)
         model = Matrix_Translate(0.0f,0.0f,60.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f)
                  * Matrix_Rotate_X(M_PI / 2);
-                 //* Matrix_Rotate_Z(g_AngleX);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, PLANE_STARS);
         DrawVirtualObject("plane");
 
-        // Desenhamos o plano da 'parede' direita (textura de nuvem de asteroides?)
-        model = Matrix_Translate(20.0f,0.0f,0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f)
+        // Desenhamos o plano da 'parede' direita
+        model = Matrix_Translate(20.5f,0.0f,0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f)
                   * Matrix_Rotate_Z(M_PI / 2);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, PLANE_STARS);
         DrawVirtualObject("plane");
 
-        // Desenhamos o plano da 'parede' da esquerda (textura de nuvem de asteroides?)
-        model = Matrix_Translate(-20.0f,0.0f,0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f)
+        // Desenhamos o plano da 'parede' da esquerda
+        model = Matrix_Translate(-20.5f,0.0f,0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f)
                   * Matrix_Rotate_Z(-M_PI / 2);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, PLANE_STARS);
         DrawVirtualObject("plane");
 
-        // Desenhamos o plano do 'teto' (DESLOCAR PRA CIMA NO EIXO Y)
-        model = Matrix_Translate(0.0f, 21.0f, 0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f)
+        // Desenhamos o plano do 'teto'
+        model = Matrix_Translate(0.0f, 21.5f, 0.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f)
                   * Matrix_Rotate_X(M_PI);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, PLANE_STARS);
@@ -664,24 +664,28 @@ int main(int argc, char* argv[])
         // se colide nos limites laterais
         if(collidingTest(limite_x, -limite_x, spaceship_bbox_max.x, spaceship_bbox_min.x)) {
             colliding = true;
-            if(speedX < 0) {
+            if(pos_ship_x >= 18.20){
                 speedX = 0;
-                pos_ship_x -= 0.05;
-            } else if(speedX > 0) {
+                pos_ship_x = 18.20;
+                pos_ship_x -= 0.01;
+            } else if(pos_ship_x <= -18.20) {
                 speedX = 0;
-                pos_ship_x += 0.05;
+                pos_ship_x = -18.20;
+                pos_ship_x += 0.01;
             }
             colliding = false;
         }
         // se colide nos limites verticais
         else if(collidingTest(limite_y*20, -limite_y, spaceship_bbox_max.y, spaceship_bbox_min.y)) {
             colliding = true;
-            if(speedY < 0) {
+            if(pos_ship_y >= 19.48) {
                 speedY = 0;
-                pos_ship_y -= 0.05;
-            } else if(speedY > 0) {
+                pos_ship_y = 19.48;
+                pos_ship_y -= 0.01;
+            } else if(pos_ship_y <= -0.75) {
                 speedY = 0;
-                pos_ship_y += 0.05;
+                pos_ship_y = -0.75;
+                pos_ship_y += 0.01;
             }
             colliding = false;
         }
@@ -696,16 +700,10 @@ int main(int argc, char* argv[])
         // Imprimimos na tela as informacoes do jogo
         TextRendering_ShowGameInfo(window);
 
+        // print game over
         if(game_over){
             TextRendering_ShowGameOver(window);
         }
-
-        // Imprimimos na tela os ângulos de Euler que controlam a rotação do
-        // terceiro cubo.
-        //TextRendering_ShowEulerAngles(window);
-
-        // Imprimimos na informação sobre a matriz de projeção sendo utilizada.
-        TextRendering_ShowProjection(window);
 
         // Imprimimos na tela informação sobre o número de quadros renderizados
         // por segundo (frames per second).
@@ -1365,38 +1363,6 @@ void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
         // variável abaixo para false.
         g_LeftMouseButtonPressed = false;
     }
-    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
-    {
-        // Se o usuário pressionou o botão esquerdo do mouse, guardamos a
-        // posição atual do cursor nas variáveis g_LastCursorPosX e
-        // g_LastCursorPosY.  Também, setamos a variável
-        // g_RightMouseButtonPressed como true, para saber que o usuário está
-        // com o botão esquerdo pressionado.
-        glfwGetCursorPos(window, &g_LastCursorPosX, &g_LastCursorPosY);
-        g_RightMouseButtonPressed = true;
-    }
-    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
-    {
-        // Quando o usuário soltar o botão esquerdo do mouse, atualizamos a
-        // variável abaixo para false.
-        g_RightMouseButtonPressed = false;
-    }
-    if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_PRESS)
-    {
-        // Se o usuário pressionou o botão esquerdo do mouse, guardamos a
-        // posição atual do cursor nas variáveis g_LastCursorPosX e
-        // g_LastCursorPosY.  Também, setamos a variável
-        // g_MiddleMouseButtonPressed como true, para saber que o usuário está
-        // com o botão esquerdo pressionado.
-        glfwGetCursorPos(window, &g_LastCursorPosX, &g_LastCursorPosY);
-        g_MiddleMouseButtonPressed = true;
-    }
-    if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_RELEASE)
-    {
-        // Quando o usuário soltar o botão esquerdo do mouse, atualizamos a
-        // variável abaixo para false.
-        g_MiddleMouseButtonPressed = false;
-    }
 }
 
 // Função callback chamada sempre que o usuário movimentar o cursor do mouse em
@@ -1428,30 +1394,6 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
 
         if (g_CameraPhi < phimin)
             g_CameraPhi = phimin;
-
-        // Atualizamos as variáveis globais para armazenar a posição atual do
-        // cursor como sendo a última posição conhecida do cursor.
-        g_LastCursorPosX = xpos;
-        g_LastCursorPosY = ypos;
-    }
-
-    if (g_RightMouseButtonPressed)
-    {
-        // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
-//        float dx = xpos - g_LastCursorPosX;
-//        float dy = ypos - g_LastCursorPosY;
-
-        // Atualizamos as variáveis globais para armazenar a posição atual do
-        // cursor como sendo a última posição conhecida do cursor.
-        g_LastCursorPosX = xpos;
-        g_LastCursorPosY = ypos;
-    }
-
-    if (g_MiddleMouseButtonPressed)
-    {
-        // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
-//        float dx = xpos - g_LastCursorPosX;
-//        float dy = ypos - g_LastCursorPosY;
 
         // Atualizamos as variáveis globais para armazenar a posição atual do
         // cursor como sendo a última posição conhecida do cursor.
@@ -1496,7 +1438,6 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     // O código abaixo implementa a seguinte lógica:
     //   Se apertar tecla Q       então g_AngleX += -delta;
     //   Se apertar tecla E então g_AngleX += delta;
-
     float delta = 3.141592 / 16; // 22.5 graus, em radianos.
 
     if (key == GLFW_KEY_Q && (action == GLFW_PRESS || action == GLFW_REPEAT))
@@ -1597,83 +1538,6 @@ void ErrorCallback(int error, const char* description)
     fprintf(stderr, "ERROR: GLFW: %s\n", description);
 }
 
-// Esta função recebe um vértice com coordenadas de modelo p_model e passa o
-// mesmo por todos os sistemas de coordenadas armazenados nas matrizes model,
-// view, e projection; e escreve na tela as matrizes e pontos resultantes
-// dessas transformações.
-void TextRendering_ShowModelViewProjection(
-    GLFWwindow* window,
-    glm::mat4 projection,
-    glm::mat4 view,
-    glm::mat4 model,
-    glm::vec4 p_model
-)
-{
-    if ( !g_ShowInfoText )
-        return;
-
-    glm::vec4 p_world = model*p_model;
-    glm::vec4 p_camera = view*p_world;
-    glm::vec4 p_clip = projection*p_camera;
-    glm::vec4 p_ndc = p_clip / p_clip.w;
-
-    float pad = TextRendering_LineHeight(window);
-
-    TextRendering_PrintString(window, " Model matrix             Model     In World Coords.", -1.0f, 1.0f-pad, 1.0f);
-    TextRendering_PrintMatrixVectorProduct(window, model, p_model, -1.0f, 1.0f-2*pad, 1.0f);
-
-    TextRendering_PrintString(window, "                                        |  ", -1.0f, 1.0f-6*pad, 1.0f);
-    TextRendering_PrintString(window, "                            .-----------'  ", -1.0f, 1.0f-7*pad, 1.0f);
-    TextRendering_PrintString(window, "                            V              ", -1.0f, 1.0f-8*pad, 1.0f);
-
-    TextRendering_PrintString(window, " View matrix              World     In Camera Coords.", -1.0f, 1.0f-9*pad, 1.0f);
-    TextRendering_PrintMatrixVectorProduct(window, view, p_world, -1.0f, 1.0f-10*pad, 1.0f);
-
-    TextRendering_PrintString(window, "                                        |  ", -1.0f, 1.0f-14*pad, 1.0f);
-    TextRendering_PrintString(window, "                            .-----------'  ", -1.0f, 1.0f-15*pad, 1.0f);
-    TextRendering_PrintString(window, "                            V              ", -1.0f, 1.0f-16*pad, 1.0f);
-
-    TextRendering_PrintString(window, " Projection matrix        Camera                    In NDC", -1.0f, 1.0f-17*pad, 1.0f);
-    TextRendering_PrintMatrixVectorProductDivW(window, projection, p_camera, -1.0f, 1.0f-18*pad, 1.0f);
-
-    int width, height;
-    glfwGetFramebufferSize(window, &width, &height);
-
-    glm::vec2 a = glm::vec2(-1, -1);
-    glm::vec2 b = glm::vec2(+1, +1);
-    glm::vec2 p = glm::vec2( 0,  0);
-    glm::vec2 q = glm::vec2(width, height);
-
-    glm::mat4 viewport_mapping = Matrix(
-        (q.x - p.x)/(b.x-a.x), 0.0f, 0.0f, (b.x*p.x - a.x*q.x)/(b.x-a.x),
-        0.0f, (q.y - p.y)/(b.y-a.y), 0.0f, (b.y*p.y - a.y*q.y)/(b.y-a.y),
-        0.0f , 0.0f , 1.0f , 0.0f ,
-        0.0f , 0.0f , 0.0f , 1.0f
-    );
-
-    TextRendering_PrintString(window, "                                                       |  ", -1.0f, 1.0f-22*pad, 1.0f);
-    TextRendering_PrintString(window, "                            .--------------------------'  ", -1.0f, 1.0f-23*pad, 1.0f);
-    TextRendering_PrintString(window, "                            V                           ", -1.0f, 1.0f-24*pad, 1.0f);
-
-    TextRendering_PrintString(window, " Viewport matrix           NDC      In Pixel Coords.", -1.0f, 1.0f-25*pad, 1.0f);
-    TextRendering_PrintMatrixVectorProductMoreDigits(window, viewport_mapping, p_ndc, -1.0f, 1.0f-26*pad, 1.0f);
-}
-
-// Escrevemos na tela os ângulos de Euler definidos nas variáveis globais
-// g_AngleX, g_AngleY, e g_AngleZ.
-void TextRendering_ShowEulerAngles(GLFWwindow* window)
-{
-    if ( !g_ShowInfoText )
-        return;
-
-    float pad = TextRendering_LineHeight(window);
-
-    char buffer[80];
-    snprintf(buffer, 80, "Euler Angles rotation matrix = Z(%.2f)*Y(%.2f)*X(%.2f)\n", g_AngleZ, g_AngleY, g_AngleX);
-
-    TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f+2*pad/10, 1.0f);
-}
-
 // Escrevemos na tela as informacoes do jogo/round/vidas
 void TextRendering_ShowGameInfo(GLFWwindow* window)
 {
@@ -1697,19 +1561,19 @@ void TextRendering_ShowGameOver(GLFWwindow* window)
 }
 
 // Escrevemos na tela qual matriz de projeção está sendo utilizada.
-void TextRendering_ShowProjection(GLFWwindow* window)
-{
-    if ( !g_ShowInfoText )
-        return;
-
-    float lineheight = TextRendering_LineHeight(window);
-    float charwidth = TextRendering_CharWidth(window);
-
-    if ( g_UsePerspectiveProjection )
-        TextRendering_PrintString(window, "Perspective", 1.0f-13*charwidth, -1.0f+2*lineheight/10, 1.0f);
-    else
-        TextRendering_PrintString(window, "Orthographic", 1.0f-13*charwidth, -1.0f+2*lineheight/10, 1.0f);
-}
+//void TextRendering_ShowProjection(GLFWwindow* window)
+//{
+//    if ( !g_ShowInfoText )
+//        return;
+//
+//    float lineheight = TextRendering_LineHeight(window);
+//    float charwidth = TextRendering_CharWidth(window);
+//
+//    if ( g_UsePerspectiveProjection )
+//        TextRendering_PrintString(window, "Perspective", 1.0f-13*charwidth, -1.0f+2*lineheight/10, 1.0f);
+//    else
+//        TextRendering_PrintString(window, "Orthographic", 1.0f-13*charwidth, -1.0f+2*lineheight/10, 1.0f);
+//}
 
 // Escrevemos na tela o número de quadros renderizados por segundo (frames per
 // second).

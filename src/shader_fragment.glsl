@@ -93,21 +93,21 @@ void main()
 
     bool calculo_iluminacao = true;
 
-    if ( object_id == PLANE_STARS )
-    {
-        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
-        U = texcoords.x;
-        V = texcoords.y;
-
-        Kd = texture(TextureImage7, vec2(U,V)).rgb;
-    }
-    else if ( object_id == PLANE )
+    if ( object_id == PLANE )
     {
         // Coordenadas de textura do plano, obtidas do arquivo OBJ.
         U = texcoords.x;
         V = texcoords.y;
 
         Kd = texture(TextureImage3, vec2(U,V)).rgb;
+    }
+    else if ( object_id == PLANE_STARS )
+    {
+        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
+        U = texcoords.x;
+        V = texcoords.y;
+
+        Kd = texture(TextureImage5, vec2(U,V)).rgb;
     }
     else if ( object_id == SPACESHIP )
     {
