@@ -23,6 +23,20 @@ struct AsteroidObj
     }
 };
 
+struct UFOObj
+{
+    float pos_x;
+    float pos_y;
+    float pos_z;
+
+    UFOObj()
+    {
+        pos_x = 0.0f;
+        pos_y = -10.0f;
+        pos_z = -60.0f;
+    }
+};
+
 bool inRange(float x, float bound1, float bound2);
 
 bool collidingTest(float limite1, float limite2, float bboxMax, float bboxMin);

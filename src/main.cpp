@@ -131,7 +131,9 @@ glm::vec4 getBbox_max(ObjModel* model, glm::mat4 model_matrix);
 
 // Asteroid stuff
 void AdicionaAsteroide();
+void AdicionaUFO();
 std::vector<AsteroidObj> asteroides;
+std::vector<UFOObj> ufos;
 
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
@@ -517,7 +519,7 @@ int main(int argc, char* argv[])
         #define SPACESHIP  3
         #define ASTEROID  4
         #define PLANE_STARS  5
-        #define UFO
+        #define UFO 6
 
         // Desenhamos o modelo spaceship
         model = Matrix_Translate(pos_ship_x,pos_ship_y,pos_ship_z)
@@ -540,6 +542,7 @@ int main(int argc, char* argv[])
                 vidas = 3;
 
                 asteroides.clear();
+                ufos.clear();
                 asteroid_count = 0;
                 asteroid_speed_multiplier = 1.0f;
 
@@ -566,20 +569,14 @@ int main(int argc, char* argv[])
             }
 
             // a cada X tempo, gera um asteroide novo
-            // marca tempo para movimentacao dos asteroides
+            // a cada Y tempo, gera um UFO
             t_now_g = glfwGetTime();
             deltaT_g += (t_now_g - t_prev_g) / (1.0f/60.0f);
             t_prev_g = t_now_g;
             if (t_now_g - game_timer >= 1.0){
                 AdicionaAsteroide();
                 game_timer += 1.0f;
-            }/*
-            if (t_now_g - game_timer > 1) {
-                game_timer++;
-                printf("t_now_g: %f\n",t_now_g);
-                printf("deltaT_g: %f\n",deltaT_g);
-                AdicionaAsteroide();
-            }*/
+            }
 
             // A cada x asteroides, aumenta o round (aumenta velocidade, gera UFO)
             if (asteroid_count % 10 == 0) {
@@ -591,14 +588,9 @@ int main(int argc, char* argv[])
                 }
                 else {
                     asteroid_speed_multiplier += 0.2f;
-                }
-
+                };
                 // Gera UFO
-                model = Matrix_Translate(0.0f,10.0f,-50.0f)
-                    * Matrix_Scale(1.0f,1.0f,1.0f);
-                glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-                glUniform1i(object_id_uniform, UFO);
-                DrawVirtualObject("ufo");
+                //AdicionaUFO();
             }
 
             /*
@@ -637,9 +629,10 @@ int main(int argc, char* argv[])
             deltaT_a = 0.0f;
         }
 
-        // renderiza asteroides e checa colisoes
+        // renderiza asteroides/UFO e checa colisoes
         for (int i = 0; i < asteroides.size(); i++)
         {
+            // ateroide
             model = Matrix_Translate(asteroides[i].pos_x, asteroides[i].pos_y, asteroides[i].pos_z)
               * Matrix_Scale(1.0f, 1.0f, 1.0f)
               * Matrix_Rotate_Z(0.6f)
@@ -676,6 +669,22 @@ int main(int argc, char* argv[])
                     g_CameraPhi = 0.0f;
                 }
             }
+        }
+
+        for (int i = 0; i < ufos.size();i++) {
+            // UFO
+            model = Matrix_Translate(ufos[i].pos_x, ufos[i].pos_y, ufos[i].pos_z)
+              * Matrix_Scale(1.0f, 1.0f, 1.0f);
+
+            // movimentacao UFO
+            ufos[i].pos_z += 20.0f * deltaT_a * asteroid_speed_multiplier;
+
+            glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+            glUniform1i(object_id_uniform, UFO);
+            DrawVirtualObject("ufo");
+
+            // TODO: COLISAO UFO
+
         }
 
         /*
@@ -1066,6 +1075,16 @@ void AdicionaAsteroide()
 
     asteroides.push_back(asteroid);
     asteroid_count += 1;
+}
+
+void AdicionaUFO()
+{
+    UFOObj ufo;
+    ufo.pos_x = -17.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/35.0f));
+    ufo.pos_y = -0.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/20.5f));
+    ufo.pos_z = -60.0f - static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/40.0f));
+
+    ufos.push_back(ufo);
 }
 
 // Utilizada para retornar a bbox mínima
