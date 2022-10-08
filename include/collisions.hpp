@@ -12,14 +12,16 @@ struct AsteroidObj
     float pos_x;
     float pos_y;
     float pos_z;
-    float rotation_speed;
+    float rotation_speed_x;
+    float rotation_speed_y;
 
     AsteroidObj()
     {
         pos_x = 0.0f;
         pos_y = -1.0f;
         pos_z = -60.0f;
-        rotation_speed = 1.0f;
+        rotation_speed_x = 1.0f;
+        rotation_speed_y = 1.0f;
     }
 };
 
@@ -28,12 +30,14 @@ struct UFOObj
     float pos_x;
     float pos_y;
     float pos_z;
+    float rotation_speed_x;
 
     UFOObj()
     {
         pos_x = 0.0f;
         pos_y = -10.0f;
         pos_z = -60.0f;
+        rotation_speed_x = 1.0f;
     }
 };
 

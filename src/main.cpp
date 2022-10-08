@@ -363,10 +363,15 @@ int main(int argc, char* argv[])
     float deltaT_a;                 // t_now - t_prev
 
     // Marcar o tempo de jogo para gerar novos asteroides
-    float game_timer = glfwGetTime();
+    int round_timer = 0.0f;
     float t_prev_g = glfwGetTime(); // decorrido ate o frame anterior
-    float t_now_g = 0;              // decorrido ate o momento
+    float t_now_g = 0.0f;              // decorrido ate o momento
     float deltaT_g;                 // t_now - t_prev
+
+    // Marcar o tempo de jogo para gerar novos UFOs
+    float t_prev_ufo = glfwGetTime(); // decorrido ate o frame anterior
+    float t_now_ufo = 0.0f;              // decorrido ate o momento
+    float deltaT_ufo;                 // t_now - t_prev
 
     // Ficamos em loop, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
@@ -556,6 +561,18 @@ int main(int argc, char* argv[])
                 AdicionaAsteroide();
             }
 
+            // a cada X tempo, gera um asteroide novo
+            // a cada Y tempo, gera um UFO
+            t_now_g = glfwGetTime();
+            if (t_now_g - t_prev_g >= 1.0f){
+                round_timer += 1.0;
+                printf("now: %f\n",t_now_g);
+                printf("round_timer: %d\n",round_timer);
+
+                AdicionaAsteroide();
+                t_prev_g = t_now_g;
+            }
+
             // deleta e substitui asteroides que ja passaram
             for (int i = 0; i < asteroides.size(); i++)
             {
@@ -568,29 +585,24 @@ int main(int argc, char* argv[])
                 }
             }
 
-            // a cada X tempo, gera um asteroide novo
-            // a cada Y tempo, gera um UFO
-            t_now_g = glfwGetTime();
-            deltaT_g += (t_now_g - t_prev_g) / (1.0f/60.0f);
-            t_prev_g = t_now_g;
-            if (t_now_g - game_timer >= 1.0){
-                AdicionaAsteroide();
-                game_timer += 1.0f;
-            }
-
             // A cada x asteroides, aumenta o round (aumenta velocidade, gera UFO)
-            if (asteroid_count % 10 == 0) {
+            t_now_ufo = glfwGetTime();
+            if (round_timer >= 10.0f) {
+                // novo round
+                round_timer = 0.0f;
                 round_atual += 1;
 
                 // limite velocidade atingido
-                if (asteroid_speed_multiplier >= 3.0f) {
-                    asteroid_speed_multiplier = 3.0f;
+                if (asteroid_speed_multiplier >= 2.5f) {
+                    asteroid_speed_multiplier = 2.5f;
                 }
                 else {
-                    asteroid_speed_multiplier += 0.2f;
+                    asteroid_speed_multiplier += 0.1f;
                 };
-                // Gera UFO
-                //AdicionaUFO();
+                // gera UFO
+                AdicionaUFO();
+
+                t_prev_ufo = t_now_ufo;
             }
 
             /*
@@ -636,8 +648,8 @@ int main(int argc, char* argv[])
             model = Matrix_Translate(asteroides[i].pos_x, asteroides[i].pos_y, asteroides[i].pos_z)
               * Matrix_Scale(1.0f, 1.0f, 1.0f)
               * Matrix_Rotate_Z(0.6f)
-              * Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * asteroides[i].rotation_speed)
-              * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * asteroides[i].rotation_speed);
+              * Matrix_Rotate_X(g_AngleX + t_now_a * asteroides[i].rotation_speed_x)
+              * Matrix_Rotate_Y(g_AngleY + t_now_a * asteroides[i].rotation_speed_y);
 
             // movimentacao asteorides
             asteroides[i].pos_z += 20.0f * deltaT_a * asteroid_speed_multiplier;
@@ -674,7 +686,8 @@ int main(int argc, char* argv[])
         for (int i = 0; i < ufos.size();i++) {
             // UFO
             model = Matrix_Translate(ufos[i].pos_x, ufos[i].pos_y, ufos[i].pos_z)
-              * Matrix_Scale(1.0f, 1.0f, 1.0f);
+              * Matrix_Scale(0.25f, 0.25f, 0.25f)
+              * Matrix_Rotate_Y(g_AngleY + t_now_a * ufos[i].rotation_speed_x);
 
             // movimentacao UFO
             ufos[i].pos_z += 20.0f * deltaT_a * asteroid_speed_multiplier;
@@ -1071,7 +1084,8 @@ void AdicionaAsteroide()
     asteroid.pos_x = -17.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/35.0f));
     asteroid.pos_y = -0.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/20.5f));
     asteroid.pos_z = -60.0f - static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/40.0f));
-    asteroid.rotation_speed = 1.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/20.5f));
+    asteroid.rotation_speed_x = 1.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/20.5f));
+    asteroid.rotation_speed_y = 1.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/20.5f));
 
     asteroides.push_back(asteroid);
     asteroid_count += 1;
@@ -1082,7 +1096,8 @@ void AdicionaUFO()
     UFOObj ufo;
     ufo.pos_x = -17.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/35.0f));
     ufo.pos_y = -0.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/20.5f));
-    ufo.pos_z = -60.0f - static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/40.0f));
+    ufo.pos_z = -60.0f;
+    ufo.rotation_speed_x = 1.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/2.5f));
 
     ufos.push_back(ufo);
 }
