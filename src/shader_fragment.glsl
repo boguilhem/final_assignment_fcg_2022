@@ -20,12 +20,11 @@ uniform mat4 view;
 uniform mat4 projection;
 
 // Identificador que define qual objeto está sendo desenhado no momento
-#define SPHERE 0
 #define PLANE  1
-#define COW 2
 #define SPACESHIP 3
 #define ASTEROID 4
 #define PLANE_STARS 5
+#define UFO 6
 uniform int object_id;
 
 // Parâmetros da axis-aligned bounding box (AABB) do modelo
@@ -39,6 +38,8 @@ uniform sampler2D TextureImage2;
 uniform sampler2D TextureImage3;
 uniform sampler2D TextureImage4;
 uniform sampler2D TextureImage5;
+uniform sampler2D TextureImage6;
+uniform sampler2D TextureImage7;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
 out vec4 color;
@@ -153,6 +154,15 @@ void main()
         q = 5.0;
     }
     else if ( object_id == ASTEROID )
+    {
+        U = texcoords.x;
+        V = texcoords.y;
+        Kd = texture(TextureImage1, vec2(U,V)).rgb; // NAO FUNCIONANDO TEXTURA 4S
+        Ks = vec3(0.1,0.1,0.1); // Refletância especular
+        Ka = Kd/4; // Refletância ambiente
+        q = 2.0;
+    }
+    else if ( object_id == UFO )
     {
         U = texcoords.x;
         V = texcoords.y;

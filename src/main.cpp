@@ -129,6 +129,12 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 glm::vec4 getBbox_min(ObjModel* model, glm::mat4 model_matrix);
 glm::vec4 getBbox_max(ObjModel* model, glm::mat4 model_matrix);
 
+// Asteroid stuff
+void AdicionaAsteroide();
+void AdicionaUFO();
+std::vector<AsteroidObj> asteroides;
+std::vector<UFOObj> ufos;
+
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
 struct SceneObject
@@ -292,12 +298,13 @@ int main(int argc, char* argv[])
 
     // Carregamos duas imagens para serem utilizadas como textura
     LoadTextureImage("../../data/spaceship/textures/DeathRow_Low_Cube001_[AlbedoM].png");     // TextureImage0
-    LoadTextureImage("../../data/asteroid/textures/LPP_1001_Roughness.png");                  // TextureImage1
+    LoadTextureImage("../../data/asteroid/textures/LPP_1001_Roughness.png");                 // TextureImage1
     LoadTextureImage("../../data/spaceship/textures/DeathRow_Low_Cube001_[Metalness].png");   // TextureImage2
     LoadTextureImage("../../data/Diffuse_2K.png");                                            // TextureImage3
-    LoadTextureImage("../../data/asteroid/textures/LPP_1001_BaseColor.png");                  // TextureImage4
-    LoadTextureImage("../../data/8k_stars.jpg");                                              // TextureImage5
-    LoadTextureImage("../../data/8k_stars_milky_way.jpg");                                    // TextureImage6
+    LoadTextureImage("../../data/asteroid/textures/LPP_1001_BaseColor.png");                 // TextureImage4
+    LoadTextureImage("../../data/starry-night-sky.jpg");                                      // TextureImage5
+    LoadTextureImage("../../data/2k_stars.jpg");                                              // TextureImage6
+    LoadTextureImage("../../data/8k_stars_milky_way.jpg");                                    // TextureImage7
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel planemodel("../../data/plane.obj");
@@ -311,6 +318,10 @@ int main(int argc, char* argv[])
     ObjModel asteroidmodel("../../data/asteroid/source/asteroid.obj");
     ComputeNormals(&asteroidmodel);
     BuildTrianglesAndAddToVirtualScene(&asteroidmodel);
+
+    ObjModel ufomodel("../../data/ufo/source/ufo.obj");
+    ComputeNormals(&ufomodel);
+    BuildTrianglesAndAddToVirtualScene(&ufomodel);
 
     if ( argc > 1 )
     {
@@ -336,9 +347,6 @@ int main(int argc, char* argv[])
     // randomizacao posicao obstaculos
     srand (static_cast <unsigned> (time(0)));
 
-    // lista de asteroides/obstaculos
-    std::vector<AsteroidObj> asteroides;
-
     // variaveis de testes de colisao / limites do mapa
     bool colliding = false;
     float limite_x = 20.0f;
@@ -353,6 +361,17 @@ int main(int argc, char* argv[])
     float t_prev_a = glfwGetTime(); // decorrido ate o frame anterior
     float t_now_a = 0;              // decorrido ate o momento
     float deltaT_a;                 // t_now - t_prev
+
+    // Marcar o tempo de jogo para gerar novos asteroides
+    int round_timer = 0.0f;
+    float t_prev_g = glfwGetTime(); // decorrido ate o frame anterior
+    float t_now_g = 0.0f;              // decorrido ate o momento
+    float deltaT_g;                 // t_now - t_prev
+
+    // Marcar o tempo de jogo para gerar novos UFOs
+    float t_prev_ufo = glfwGetTime(); // decorrido ate o frame anterior
+    float t_now_ufo = 0.0f;              // decorrido ate o momento
+    float deltaT_ufo;                 // t_now - t_prev
 
     // Ficamos em loop, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
@@ -502,10 +521,10 @@ int main(int argc, char* argv[])
 
         #define SPHERE 0
         #define PLANE  1
-        #define COW  2
         #define SPACESHIP  3
         #define ASTEROID  4
         #define PLANE_STARS  5
+        #define UFO 6
 
         // Desenhamos o modelo spaceship
         model = Matrix_Translate(pos_ship_x,pos_ship_y,pos_ship_z)
@@ -526,13 +545,67 @@ int main(int argc, char* argv[])
             if (game_restart == true) {
                 round_atual = 1;
                 vidas = 3;
+
                 asteroides.clear();
+                ufos.clear();
                 asteroid_count = 0;
                 asteroid_speed_multiplier = 1.0f;
+
                 game_over = false;
                 game_restart = false;
                 colliding = false;
             }
+
+            // Se jogo comecando, gera o primeiro asteroide
+            if (asteroides.size() == 0) {
+                AdicionaAsteroide();
+            }
+
+            // a cada X tempo, gera um asteroide novo
+            // a cada Y tempo, gera um UFO
+            t_now_g = glfwGetTime();
+            if (t_now_g - t_prev_g >= 1.0f){
+                round_timer += 1.0;
+                printf("now: %f\n",t_now_g);
+                printf("round_timer: %d\n",round_timer);
+
+                AdicionaAsteroide();
+                t_prev_g = t_now_g;
+            }
+
+            // deleta e substitui asteroides que ja passaram
+            for (int i = 0; i < asteroides.size(); i++)
+            {
+                if (asteroides[i].pos_z >= 5.0f) {
+                    // se ultrapassou a nave, remove o asteroide
+                    asteroides.erase(asteroides.begin() + i);
+
+                    // adiciona novo asteroide em posicao randomizada
+                    AdicionaAsteroide();
+                }
+            }
+
+            // A cada x asteroides, aumenta o round (aumenta velocidade, gera UFO)
+            t_now_ufo = glfwGetTime();
+            if (round_timer >= 10.0f) {
+                // novo round
+                round_timer = 0.0f;
+                round_atual += 1;
+
+                // limite velocidade atingido
+                if (asteroid_speed_multiplier >= 2.5f) {
+                    asteroid_speed_multiplier = 2.5f;
+                }
+                else {
+                    asteroid_speed_multiplier += 0.1f;
+                };
+                // gera UFO
+                AdicionaUFO();
+
+                t_prev_ufo = t_now_ufo;
+            }
+
+            /*
             // confere se asteroides passaram da nave para concluir o round
             if (asteroides.size() == 0 || asteroides[0].pos_z >= 5.0f) {
                 // novo round: add asteroide extra
@@ -554,15 +627,9 @@ int main(int argc, char* argv[])
                 // calcula novas posicoes iniciais randomizadas
                 asteroides.clear();
                 for (int i = 0; i < asteroid_count; i++) {
-                    AsteroidObj asteroid;
-
-                    asteroid.pos_x = -17.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/35.0f));
-                    asteroid.pos_y = -0.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/20.5f));
-                    asteroid.pos_z = -60.0f;
-
-                    asteroides.push_back(asteroid);
+                    AdicionaAsteroide();
                 }
-            }
+            }*/
         }
 
         // marca tempo para movimentacao dos asteroides
@@ -574,27 +641,83 @@ int main(int argc, char* argv[])
             deltaT_a = 0.0f;
         }
 
-        // gerar instancias de asteroides em loop
+        // renderiza asteroides/UFO e checa colisoes
+        for (int i = 0; i < asteroides.size(); i++)
+        {
+            // ateroide
+            model = Matrix_Translate(asteroides[i].pos_x, asteroides[i].pos_y, asteroides[i].pos_z)
+              * Matrix_Scale(1.0f, 1.0f, 1.0f)
+              * Matrix_Rotate_Z(0.6f)
+              * Matrix_Rotate_X(g_AngleX + t_now_a * asteroides[i].rotation_speed_x)
+              * Matrix_Rotate_Y(g_AngleY + t_now_a * asteroides[i].rotation_speed_y);
+
+            // movimentacao asteorides
+            asteroides[i].pos_z += 20.0f * deltaT_a * asteroid_speed_multiplier;
+
+            glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+            glUniform1i(object_id_uniform, ASTEROID);
+            DrawVirtualObject("asteroid");
+
+            // asteroid-ship collision checking
+            if (game_start && collisionSpaceshipAsteroid(camera_position_c, asteroides[i])) {
+                vidas -= 1;
+
+                // paraliza o jogo se o usuario perdeu as 3 vidas
+                if (vidas == 0) {
+                    game_start =  false;
+                    game_over = true;
+                    lookAt_camera = true;
+                    colliding = true;
+                    spaceship_resize = 1.0f;
+                }
+                // se ainda nao perdeu, reduz uma vida e reseta posicao da nave
+                else {
+                    asteroides.clear();
+                    asteroid_speed_multiplier = 1.0f;
+                    pos_ship_x = 0.0f;
+                    pos_ship_y = 10.0f;
+                    pos_ship_z = 0.0f;
+                    g_CameraTheta = 0.0f;
+                    g_CameraPhi = 0.0f;
+                }
+            }
+        }
+
+        for (int i = 0; i < ufos.size();i++) {
+            // UFO
+            model = Matrix_Translate(ufos[i].pos_x, ufos[i].pos_y, ufos[i].pos_z)
+              * Matrix_Scale(0.25f, 0.25f, 0.25f)
+              * Matrix_Rotate_Y(g_AngleY + t_now_a * ufos[i].rotation_speed_x);
+
+            // movimentacao UFO
+            ufos[i].pos_z += 20.0f * deltaT_a * asteroid_speed_multiplier;
+
+            glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+            glUniform1i(object_id_uniform, UFO);
+            DrawVirtualObject("ufo");
+
+            // TODO: COLISAO UFO
+
+        }
+
+        /*
         for (int i = 0; i < asteroid_count; i++)
         {
-            // asteroides
+            // movimentacao asteroides
             model = Matrix_Translate(asteroides[i].pos_x, asteroides[i].pos_y, asteroides[i].pos_z)
               * Matrix_Scale(1.0f, 1.0f, 1.0f)
               * Matrix_Rotate_Z(0.6f)
               * Matrix_Rotate_X(0.2f)
               * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 10.0f);
 
-            // movimentacao asteroides
             asteroides[i].pos_z += 30.0f * deltaT_a * asteroid_speed_multiplier;
 
             glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
             glUniform1i(object_id_uniform, ASTEROID);
             DrawVirtualObject("asteroid");
-        }
 
-        // testes de colisao com asteroides
-        for (int i = 0; i < asteroid_count; i++){
-            if(game_start && collisionSpaceshipAsteroid(camera_position_c, asteroides[i])){
+            // asteroid-ship collision checking
+            if (game_start && collisionSpaceshipAsteroid(camera_position_c, asteroides[i])) {
                 vidas -= 1;
 
                 // paraliza o jogo se o usuario perdeu as 3 vidas
@@ -613,9 +736,11 @@ int main(int argc, char* argv[])
                     pos_ship_x = 0.0f;
                     pos_ship_y = 10.0f;
                     pos_ship_z = 0.0f;
+                    g_CameraTheta = 0.0f;
+                    g_CameraPhi = 0.0f;
                 }
             }
-        }
+        }*/
 
         // Desenhamos o plano da parede da frente (espaço)
         model = Matrix_Translate(0.0f,0.0f,-60.0f) * Matrix_Scale(100.0f, 100.0f, 100.0f)
@@ -658,6 +783,7 @@ int main(int argc, char* argv[])
         glUniform1i(object_id_uniform, PLANE);
         DrawVirtualObject("plane");
 
+        // colliding = false;
         // se colide nos limites laterais
         if(collidingTest(limite_x, -limite_x, spaceship_bbox_max.x, spaceship_bbox_min.x)) {
             colliding = true;
@@ -865,6 +991,7 @@ void LoadShadersFromFiles()
     glUniform1i(glGetUniformLocation(program_id, "TextureImage4"), 4);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage5"), 5);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage6"), 6);
+    glUniform1i(glGetUniformLocation(program_id, "TextureImage7"), 7);
     glUseProgram(0);
 }
 
@@ -949,6 +1076,30 @@ void ComputeNormals(ObjModel* model)
         model->attrib.normals[3*i + 1] = n.y;
         model->attrib.normals[3*i + 2] = n.z;
     }
+}
+
+void AdicionaAsteroide()
+{
+    AsteroidObj asteroid;
+    asteroid.pos_x = -17.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/35.0f));
+    asteroid.pos_y = -0.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/20.5f));
+    asteroid.pos_z = -60.0f - static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/40.0f));
+    asteroid.rotation_speed_x = 1.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/20.5f));
+    asteroid.rotation_speed_y = 1.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/20.5f));
+
+    asteroides.push_back(asteroid);
+    asteroid_count += 1;
+}
+
+void AdicionaUFO()
+{
+    UFOObj ufo;
+    ufo.pos_x = -17.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/35.0f));
+    ufo.pos_y = -0.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/20.5f));
+    ufo.pos_z = -60.0f;
+    ufo.rotation_speed_x = 1.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/2.5f));
+
+    ufos.push_back(ufo);
 }
 
 // Utilizada para retornar a bbox mínima
@@ -1543,7 +1694,7 @@ void TextRendering_ShowGameInfo(GLFWwindow* window)
     float pad = TextRendering_LineHeight(window);
 
     char buffer[80];
-    snprintf(buffer, 80, "ROUND %d\n   |   VIDAS %d\n", round_atual, vidas);
+    snprintf(buffer, 80, "ROUND: %d\n   |   VIDAS: %d\n", round_atual, vidas);
 
     TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f+2*pad/10, 2.5f);
 }
