@@ -581,7 +581,7 @@ int main(int argc, char* argv[])
                     asteroides.erase(asteroides.begin() + i);
 
                     // adiciona novo asteroide em posicao randomizada
-                    AdicionaAsteroide();
+                    //AdicionaAsteroide();
                 }
             }
 
@@ -1083,7 +1083,7 @@ void AdicionaAsteroide()
     AsteroidObj asteroid;
     asteroid.pos_x = -17.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/35.0f));
     asteroid.pos_y = -0.5f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/20.5f));
-    asteroid.pos_z = -60.0f - static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/40.0f));
+    asteroid.pos_z = -60.0f;
     asteroid.rotation_speed_x = 1.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/20.5f));
     asteroid.rotation_speed_y = 1.0f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/20.5f));
 
