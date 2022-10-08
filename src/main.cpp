@@ -578,7 +578,7 @@ int main(int argc, char* argv[])
 
             // a cada X tempo, gera um asteroide novo
             t_now_g = glfwGetTime();
-            if (t_now_g - t_prev_g >= 1.0f){
+            if (t_now_g - t_prev_g >= 0.5f){
                 round_timer += 1.0;
                 printf("now: %f\n",t_now_g);
                 printf("round_timer: %d\n",round_timer);
@@ -595,7 +595,7 @@ int main(int argc, char* argv[])
                     asteroides.erase(asteroides.begin() + i);
 
                     // adiciona novo asteroide em posicao randomizada
-                    //AdicionaAsteroide();
+                    AdicionaAsteroide();
                 }
             }
 
@@ -610,7 +610,7 @@ int main(int argc, char* argv[])
                     asteroid_speed_multiplier = 2.5f;
                 }
                 else {
-                    asteroid_speed_multiplier += 0.1f;
+                    asteroid_speed_multiplier += 0.2f;
                 };
             }
 
