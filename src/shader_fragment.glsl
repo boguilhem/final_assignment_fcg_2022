@@ -108,26 +108,6 @@ void main()
         color.rgb = Kd;
         calculo_iluminacao = false;
     }
-    else if (object_id == /* INSERIR NOVO OBJETO AQUI PARA GOURAUD */) {
-//        U = texcoords.x;
-//        V = texcoords.y;
-//        lambert = max(0, dot(n, l));
-//
-//        Kd = vec3(0.1,0.1,0.08); // Refletância difusa
-//        Ka = Kd/4; // Refletância ambiente
-//        vec3 Ia = vec3(0.2,0.2,0.2); // espectro da luz ambiente
-//
-//        vec3 ambient_term = Ka*Ia; // o termo ambiente
-//        vec3 lambert_diffuse_term = Kd * I * lambert; // termo difuso de Lambert
-//        color_gouraud = lambert_diffuse_term + ambient_term;
-//        color_gouraud = pow(color_gouraud, vec3(2,2,2));
-//
-//        calculo_iluminacao = false;
-//
-//        Kd = texture(TextureImage3, vec2(U,V)).rgb;
-//        color.rgb = color_gouraud * Kd;
-
-    }
     else if ( object_id == PLANE_STARS )
     {
         // Coordenadas de textura do plano, obtidas do arquivo OBJ.
@@ -152,6 +132,7 @@ void main()
 
         // Expoente especular para o modelo de iluminação de Phong
         q = 5.0;
+
     }
     else if ( object_id == ASTEROID )
     {
@@ -166,10 +147,20 @@ void main()
     {
         U = texcoords.x;
         V = texcoords.y;
-        Kd = texture(TextureImage1, vec2(U,V)).rgb; // NAO FUNCIONANDO TEXTURA 4S
-        Ks = vec3(0.1,0.1,0.1); // Refletância especular
+        lambert = max(0, dot(n, l));
+        Kd = vec3(0.1,0.1,0.1); // Refletância difusa
         Ka = Kd/4; // Refletância ambiente
-        q = 2.0;
+        vec3 Ia = vec3(0.1,0.1,0.1); // espectro da luz ambiente
+
+        vec3 ambient_term = Ka*Ia; // o termo ambiente
+        vec3 lambert_diffuse_term = Kd * I * lambert; // termo difuso de Lambert
+        color_gouraud = lambert_diffuse_term + ambient_term;
+        color_gouraud = pow(color_gouraud, vec3(1.0,0,1.0));
+
+        calculo_iluminacao = false;
+
+        Kd = texture(TextureImage5, vec2(U,V)).rgb;
+        color.rgb = color_gouraud * Kd;
     }
 
     if(calculo_iluminacao)
